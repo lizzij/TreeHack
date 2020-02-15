@@ -1,11 +1,12 @@
 {% extends 'base.html' %}
 
 {% block header %}
-<h1>{% block title %}Record{% endblock %}</h1>
+<h1>{% block title %}Say freezy trees made these trees' cheese freeze{% endblock %}</h1>
 {% endblock %}
 
 {% block content %}
 	<input type="button" id="mixBut" value="Start" />
+	<!-- <input type="image" src="{{ url_for('static', filename="recorder.png") }}" id="mixBut" value="Start" /> -->
 	<script src="https://unpkg.com/synth-js/dst/synth.min.js"></script>
 	<script>
 		var mixBut = document.getElementById("mixBut");

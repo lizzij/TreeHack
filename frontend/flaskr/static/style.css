@@ -58,13 +58,12 @@ nav ul li a, nav ul li span, header .action {
 .content {
   padding: 0 1rem 1rem;
   min-height: 39rem;
-  position: center;
-  align-items: center;
-  align-self: center;
-  align-content: center;
+  flex: auto;
 }
 
 .content > header {
+  padding-top: 4rem;
+  padding-bottom: 14rem;
 }
 
 .content > header h1 {
@@ -95,6 +94,10 @@ nav ul li a, nav ul li span, header .action {
   margin-bottom: 0.5em;
 }
 
+.content input {
+  margin-left: 50%;
+}
+
 .content input, .content textarea {
   margin-bottom: 1em;
 }
@@ -102,6 +105,11 @@ nav ul li a, nav ul li span, header .action {
 .content textarea {
   min-height: 12em;
   resize: vertical;
+}
+
+.content mixBut {
+  width: 5em;
+  height: 5em;
 }
 
 input.danger {
