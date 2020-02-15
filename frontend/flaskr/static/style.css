@@ -1,23 +1,23 @@
 html {
-  font-family: sans-serif;
-  background: #eee;
+  font-family: Palatino;
+  background: black;
   padding: 1rem;
 }
 
 body {
   max-width: 960px;
   margin: 0 auto;
-  background: #344955;
+  background: #FEF151;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: serif;
-  color: #377ba8;
+  font-family: Palatino;
+  color: black;
   margin: 1rem 0;
 }
 
 a {
-  color: #377ba8;
+  color: black;
 }
 
 hr {
@@ -26,10 +26,11 @@ hr {
 }
 
 nav {
-  background: lightgray;
+  background: #FEF151;
   display: flex;
   align-items: center;
   padding: 0 0.5rem;
+  height: 5rem;
 }
 
 nav h1 {
@@ -56,16 +57,19 @@ nav ul li a, nav ul li span, header .action {
 
 .content {
   padding: 0 1rem 1rem;
+  min-height: 39rem;
+  position: center;
+  align-items: center;
+  align-self: center;
+  align-content: center;
 }
 
 .content > header {
-  border-bottom: 1px solid lightgray;
-  display: flex;
-  align-items: flex-end;
 }
 
 .content > header h1 {
   flex: auto;
+  text-align: center;
   margin: 1rem 0 0.25rem 0;
 }
 
@@ -74,30 +78,6 @@ nav ul li a, nav ul li span, header .action {
   padding: 1em;
   background: #cae6f6;
   border: 1px solid #377ba8;
-}
-
-.post > header {
-  display: flex;
-  align-items: flex-end;
-  font-size: 0.85em;
-}
-
-.post > header > div:first-of-type {
-  flex: auto;
-}
-
-.post > header h1 {
-  font-size: 1.5em;
-  margin-bottom: 0;
-}
-
-.post .about {
-  color: slategray;
-  font-style: italic;
-}
-
-.post .body {
-  white-space: pre-line;
 }
 
 .content:last-child {
@@ -131,4 +111,8 @@ input.danger {
 input[type=submit] {
   align-self: start;
   min-width: 10em;
+}
+
+input {
+  color: black;
 }
