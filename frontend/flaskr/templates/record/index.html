@@ -1,63 +1,84 @@
 {% extends 'base.html' %}
 
 {% block header %}
-  <h1>{% block title %}Record{% endblock %}</h1>
+<h1>{% block title %}Record{% endblock %}</h1>
 {% endblock %}
 
 {% block content %}
-<input type="button" id="mixBut" value="Start" />
-<script src="https://unpkg.com/synth-js/dst/synth.min.js"></script>
-<script>
-	var mixBut = document.getElementById("mixBut");
+	<input type="button" id="mixBut" value="Start" />
+	<input type="button" id="evalBut" value="Score" />
+	<script>
+		var evalBut = document.getElementById("evalBut");
+		evalBut.style.visibility="hidden";
+		evalBut.addEventListener("click", ToEval);
+		function ToEval() {
+			console.log("Evaluate");
+			window.location.href='{{ url_for( 'score.display_score') }}';
+		}
+	</script>
+	<script src="https://unpkg.com/synth-js/dst/synth.min.js"></script>
+	<script>
+		var mixBut = document.getElementById("mixBut");
 
-	mixBut.addEventListener("click", Start);
-
-	function Start(){
-		console.log("Started");
-		mixBut.removeEventListener("click", Start);
-		mixBut.addEventListener("click", Stop);
-		mixBut.value = "Stop";
-		navigator.mediaDevices.getUserMedia({ audio: true, video: false }).then(handleSuccess);
-	}
-
-	function Stop(){
-		console.log("Stopped");
-		mixBut.removeEventListener("click", Stop);
 		mixBut.addEventListener("click", Start);
-		mixBut.value = "Start";
-	}
 
-  var handleSuccess = function(stream) {
-    var context = new AudioContext();
-    var source = context.createMediaStreamSource(stream);
-    var processor = context.createScriptProcessor(1024, 1, 1);
-    var data = [];
+		function Start() {
+			console.log("Started");
+			mixBut.removeEventListener("click", Start);
+			mixBut.addEventListener("click", Stop);
+			mixBut.value = "Stop";
+			navigator.mediaDevices.getUserMedia({
+				audio: true,
+				video: false
+			}).then(handleSuccess);
+		}
 
-    source.connect(processor);
-    processor.connect(context.destination);
+		function Stop() {
+			console.log("Stopped");
+			mixBut.removeEventListener("click", Stop);
+			mixBut.addEventListener("click", Start);
+			mixBut.value = "Start";
+			mixBut.style.visibility="hidden";
 
-    processor.onaudioprocess = function(e) {
-      data.push.apply(data, e.inputBuffer.getChannelData(0));
-      // cut off after 5 seconds
-      if (mixBut.value === "Start") {
-        context.close();
-        var track = stream.getAudioTracks()[0];
-        track.stop();
-        // Convert this to WAV
-        var wav = new synth.WAV(1, context.sampleRate, 16, true, data);
-        var blob = wav.toBlob();
-        // do something with blob
-        var src = URL.createObjectURL(blob);
-        var audio = new Audio();
-        audio.controls = true;
-        document.body.appendChild(audio);
-        // play back audio
-        audio.addEventListener('canplaythrough', function() { audio.play(); });
-        audio.src = src;
-      }
-    };
-  };
+			var evalBut = document.getElementById("evalBut");
+			evalBut.style.visibility="visible";
+		}
 
+		var handleSuccess = function(stream) {
+			var context = new AudioContext();
+			var source = context.createMediaStreamSource(stream);
+			var processor = context.createScriptProcessor(1024, 1, 1);
+			var data = [];
 
-</script>
+			source.connect(processor);
+			processor.connect(context.destination);
+
+			processor.onaudioprocess = function(e) {
+				data.push.apply(data, e.inputBuffer.getChannelData(0));
+				// cut off after 5 seconds
+				if (mixBut.value === "Start") {
+					context.close();
+					var track = stream.getAudioTracks()[0];
+					track.stop();
+					// Convert this to WAV
+					var wav = new synth.WAV(1, context.sampleRate, 16, true, data);
+					var blob = wav.toBlob();
+					// TODO
+					// let request = new XMLHttpRequest();
+					// request.open("POST", 'some_url/', true);
+					// request.send(data)
+					// do something with blob
+					var src = URL.createObjectURL(blob);
+					var audio = new Audio();
+					audio.controls = true;
+					document.body.appendChild(audio);
+					// play back audio
+					audio.addEventListener('canplaythrough', function() {
+						audio.play();
+					});
+					audio.src = src;
+				}
+			};
+		};
+	</script>
 {% endblock %}
