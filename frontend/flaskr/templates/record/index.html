@@ -1,28 +1,63 @@
 {% extends 'base.html' %}
 
 {% block header %}
-  <h1>{% block title %}Posts{% endblock %}</h1>
-  {% if g.user %}
-    <a class="action" href="{{ url_for('blog.create') }}">New</a>
-  {% endif %}
+  <h1>{% block title %}Record{% endblock %}</h1>
 {% endblock %}
 
 {% block content %}
-  {% for post in posts %}
-    <article class="post">
-      <header>
-        <div>
-          <h1>{{ post['title'] }}</h1>
-          <div class="about">by {{ post['username'] }} on {{ post['created'].strftime('%Y-%m-%d') }}</div>
-        </div>
-        {% if g.user['id'] == post['author_id'] %}
-          <a class="action" href="{{ url_for('blog.update', id=post['id']) }}">Edit</a>
-        {% endif %}
-      </header>
-      <p class="body">{{ post['body'] }}</p>
-    </article>
-    {% if not loop.last %}
-      <hr>
-    {% endif %}
-  {% endfor %}
+<input type="button" id="mixBut" value="Start" />
+<script src="https://unpkg.com/synth-js/dst/synth.min.js"></script>
+<script>
+	var mixBut = document.getElementById("mixBut");
+
+	mixBut.addEventListener("click", Start);
+
+	function Start(){
+		console.log("Started");
+		mixBut.removeEventListener("click", Start);
+		mixBut.addEventListener("click", Stop);
+		mixBut.value = "Stop";
+		navigator.mediaDevices.getUserMedia({ audio: true, video: false }).then(handleSuccess);
+	}
+
+	function Stop(){
+		console.log("Stopped");
+		mixBut.removeEventListener("click", Stop);
+		mixBut.addEventListener("click", Start);
+		mixBut.value = "Start";
+	}
+
+  var handleSuccess = function(stream) {
+    var context = new AudioContext();
+    var source = context.createMediaStreamSource(stream);
+    var processor = context.createScriptProcessor(1024, 1, 1);
+    var data = [];
+
+    source.connect(processor);
+    processor.connect(context.destination);
+
+    processor.onaudioprocess = function(e) {
+      data.push.apply(data, e.inputBuffer.getChannelData(0));
+      // cut off after 5 seconds
+      if (mixBut.value === "Start") {
+        context.close();
+        var track = stream.getAudioTracks()[0];
+        track.stop();
+        // Convert this to WAV
+        var wav = new synth.WAV(1, context.sampleRate, 16, true, data);
+        var blob = wav.toBlob();
+        // do something with blob
+        var src = URL.createObjectURL(blob);
+        var audio = new Audio();
+        audio.controls = true;
+        document.body.appendChild(audio);
+        // play back audio
+        audio.addEventListener('canplaythrough', function() { audio.play(); });
+        audio.src = src;
+      }
+    };
+  };
+
+
+</script>
 {% endblock %}
