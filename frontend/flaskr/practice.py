@@ -8,8 +8,7 @@ from flask import url_for
 from werkzeug.exceptions import abort
 from flaskr.db import get_db
 
-bp = Blueprint("practice", __name__)
-
+bp = Blueprint("practice", __name__, url_prefix="/practice")
 
 @bp.route("/")
 def start_practice():
