@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block header %}
+<h1>{% block title %}Score{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  {% for label, score in scores.items() %}
+    <h1>{{ label }}: {{ score }}</h1>
+  {% endfor %}
+{% endblock %}

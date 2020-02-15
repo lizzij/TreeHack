@@ -11,9 +11,10 @@
 		var evalBut = document.getElementById("evalBut");
 		evalBut.style.visibility="hidden";
 		evalBut.addEventListener("click", ToEval);
+		var testScores = {'A':10}
 		function ToEval() {
 			console.log("Evaluate");
-			window.location.href='{{ url_for( 'score.display_score') }}';
+			window.location.href='{{ url_for('score.display_score') }}';
 		}
 	</script>
 	<script src="https://unpkg.com/synth-js/dst/synth.min.js"></script>

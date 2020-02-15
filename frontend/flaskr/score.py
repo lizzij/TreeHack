@@ -17,5 +17,6 @@ bp = Blueprint("score", __name__, url_prefix="/score")
 
 @bp.route("/", methods=("GET", "POST"))
 def display_score():
-    """get """
-    return "Eval"
+    """display a dashboard for score """
+    scores = {'labelA': 100, 'labelB': 200, 'labelC': 300}
+    return render_template("score/index.html", scores=scores)

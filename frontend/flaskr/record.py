@@ -13,6 +13,6 @@ bp = Blueprint("record", __name__)
 
 @bp.route("/")
 def index():
-    """Show all the posts, most recent first."""
+    """Record, and playback"""
 
     return render_template("record/index.html")
