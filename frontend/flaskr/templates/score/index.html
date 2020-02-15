@@ -8,4 +8,13 @@
   {% for label, score in scores.items() %}
     <h1>{{ label }}: {{ score }}</h1>
   {% endfor %}
+  <input type="button" id="pracBut" value="Practice" />
+	<script>
+		var pracBut = document.getElementById("pracBut");
+		pracBut.addEventListener("click", ToPrac);
+		function ToPrac() {
+			console.log("Prac");
+			window.location.href='{{ url_for('practice.start_practice') }}';
+		}
+	</script>
 {% endblock %}

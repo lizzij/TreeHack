@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block header %}
+<h1>{% block title %}Practice{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <input type="button" id="retryBut" value="Try Again" />
+	<script>
+		var retryBut = document.getElementById("retryBut");
+		retryBut.addEventListener("click", BackToRecord);
+		function BackToRecord() {
+			console.log("BackToRecord");
+			window.location.href='{{ url_for('record.index') }}';
+		}
+	</script>
+{% endblock %}
