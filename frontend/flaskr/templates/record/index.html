@@ -5,17 +5,13 @@
 {% endblock %}
 
 {% block content %}
+	<!-- <div id="like_button_container"></div>
+	<script src="https://unpkg.com/react@16/umd/react.production.min.js" crossorigin></script>
+	<script src="https://unpkg.com/react-dom@16/umd/react-dom.production.min.js" crossorigin></script>
+
+	<script src="{{ url_for('static', filename="like_button.js") }}"></script> -->
+
 	<input type="button" id="mixBut" value="Start" />
-	<input type="button" id="evalBut" value="Score" />
-	<script>
-		var evalBut = document.getElementById("evalBut");
-		evalBut.style.visibility="hidden";
-		evalBut.addEventListener("click", ToEval);
-		function ToEval() {
-			console.log("Evaluate");
-			window.location.href='{{ url_for('score.display_score') }}';
-		}
-	</script>
 	<script src="https://unpkg.com/synth-js/dst/synth.min.js"></script>
 	<script>
 		var mixBut = document.getElementById("mixBut");
@@ -36,12 +32,12 @@
 		function Stop() {
 			console.log("Stopped");
 			mixBut.removeEventListener("click", Stop);
-			mixBut.addEventListener("click", Start);
-			mixBut.value = "Start";
-			mixBut.style.visibility="hidden";
-
-			var evalBut = document.getElementById("evalBut");
-			evalBut.style.visibility="visible";
+			mixBut.addEventListener("click", ToEval);
+			mixBut.value = "Evaluate";
+			function ToEval() {
+				console.log("Evaluate");
+				window.location.href='{{ url_for('score.display_score') }}';
+			}
 		}
 
 		var handleSuccess = function(stream) {
@@ -56,7 +52,7 @@
 			processor.onaudioprocess = function(e) {
 				data.push.apply(data, e.inputBuffer.getChannelData(0));
 				// cut off after 5 seconds
-				if (mixBut.value === "Start") {
+				if (mixBut.value === "Evaluate") {
 					context.close();
 					var track = stream.getAudioTracks()[0];
 					track.stop();
