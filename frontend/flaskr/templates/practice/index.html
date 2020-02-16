@@ -4,122 +4,125 @@
 <script src="{{ url_for('static', filename='dist/face-api.js') }}"></script>
 <script src="{{ url_for('static', filename='js/commons.js') }}"></script>
 <script src="{{ url_for('static', filename='js/faceDetectionControls.js') }}"></script>
-<!-- <link rel="stylesheet" href="styles.css"> -->
+<link rel="stylesheet" href="{{ url_for ('static', filename='styles.css') }}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.css">
 <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
-<h1>{% block title %}Practice{% endblock %}</h1>
+<h3>{% block title %}Practice{% endblock %}</h3>
 {% endblock %}
 
 {% block content %}
-
-  <input type="button" id="retryBut" value="Try Again" />
-	<script>
-		var retryBut = document.getElementById("retryBut");
-		retryBut.addEventListener("click", BackToRecord);
-		function BackToRecord() {
-			console.log("BackToRecord");
-			window.location.href='{{ url_for('record.index') }}';
-		}
-	</script>
-
-<body>
-	<div id="navbar" style="display: none;"></div>
-	<div class="center-content page-container">
-  
-	  <div class="progress" id="loader">
+<div id="navbar" style="display: none;"></div>
+<div class="instructionContainer">
+	<div id="closeInstructionDiv">
+		Please Look at the Screen and Close Your Mouth
+	</div>
+	<div class="missionDiv" id="missionAEDiv" style="display: none;">
+		<div class="mouthInstructionDiv">
+			Make 'A/E' Sound
+		</div>
+		<div>
+			<img class="mouthImg" src="{{ url_for('static', filename='images/mouth_ae.png') }}" />
+		</div>
+	</div>
+	<div class='missionDiv' id="missionOoDiv" style="display: none;">
+		<div class="mouthInstructionDiv">
+			Make 'O' Sound
+		</div>
+		<div>
+			<img class="mouthImg" src="{{ url_for('static', filename='images/mouth_oo.png') }}" />
+		</div>
+	</div>
+	<div class='missionDiv' id="missionShChDiv" style="display: none;">
+		<div class="mouthInstructionDiv">
+			Make 'Sh/Ch' Sound
+		</div>
+		<div>
+			<img class="mouthImg" src="{{ url_for('static', filename='images/mouth_sh_ch.png') }}" />
+		</div>
+	</div>
+	<div class='missionDiv' id="missionIDiv" style="display: none;">
+		<div class="mouthInstructionDiv">
+			Make 'EE' Sound
+		</div>
+		<div>
+			<img class="mouthImg" src="{{ url_for('static', filename='images/mouth_i.png') }}" />
+		</div>
+	</div>
+	<div class="successDiv" id='successDiv' style="display: none;">
+		Success! You Rock!
+	</div>
+</div>
+<div class="center-content page-container">
+	<div class="progress" id="loader">
 		<div class="indeterminate"></div>
-	  </div>
-	  <div style="position: relative" class="margin">
+	</div>
+	<div style="position: relative" class="margin">
 		<video onloadedmetadata="onPlay(this)" id="inputVideo" autoplay muted playsinline></video>
 		<canvas id="overlay" />
-	  </div>
+	</div>
+</div>
+<div id="adviceDiv">
+	
+</div>
   
-	  <h1 id='evaluation'></h1>
-  
-	  <div>Warning: <span id='warningSpan'></span></div>
-  
-	  <div>Current Practice Type: <span id='currentPracticeSpan'>a</span></div>
-  
-	  <div>
-		Select Pronouncation
-		<div>a - <span onClick="choosePractice('a')">click</span></div>
-		<div>e - <span onClick="choosePractice('e')">click</span></div>
-		<div>i - <span onClick="choosePractice('i')">click</span></div>
-		<div>o - <span onClick="choosePractice('o')">click</span></div>
-	  </div>
-  
-  
-	  <!-- ssd_mobilenetv1_controls -->
-	  <span id="ssd_mobilenetv1_controls">
-		<div class="row side-by-side">
-		  <div class="row">
-			<label for="minConfidence">Min Confidence:</label>
-			<input disabled value="0.5" id="minConfidence" type="text" class="bold">
-		  </div>
-		  <button
-			class="waves-effect waves-light btn"
-			onclick="onDecreaseMinConfidence()"
-		  >
-			<i class="material-icons left">-</i>
-		  </button>
-		  <button
-			class="waves-effect waves-light btn"
-			onclick="onIncreaseMinConfidence()"
-		  >
-			<i class="material-icons left">+</i>
-		  </button>
-		</div>
-	  </span>
-	</body>
-  
-	<script>
-	  let forwardTimes = []
-	  let restingMeasures;
-	  let successStartTime, restStartTime;
-	  let inRest = true;
-	  let isSuccessful = false;
-	  let practiceType = 'a';
-  
-	  function choosePractice(practiceTarget){
-		practiceType = practiceTarget;
-		document.getElementById('currentPracticeSpan').textContent = practiceType;
-		inRest = true;
-		isSuccessful = false;
-		restStartTime = Date.now();
-	  }
-  
-	  function updateTimeStats(timeInMs) {
+<script>
+	let forwardTimes = []
+	let restingMeasures;
+	let successStartTime, restStartTime, successEndTime;
+	let inRest = true;
+	let isSuccessful = false;
+	let hasSucceeded = false;
+	const missionTypeArr = ['ae', 'i', 'oo', 'shch'];
+	let missionType;
+	let currMissionDiv;
+
+	function updateMission(){
+		// random algorithm
+		missionType = missionTypeArr[Math.floor(Math.random() * missionTypeArr.length)]
+		if (missionType == 'ae') {
+			currMissionDiv = 'missionAEDiv';
+		} else if (missionType == 'i') {
+			currMissionDiv = 'missionIDiv';
+		} else if (missionType == 'oo') {
+			currMissionDiv = 'missionOoDiv';
+		} else if (missionType == 'shch') {
+			currMissionDiv = 'missionShChDiv';
+		}
+		document.getElementById(currMissionDiv).style.display = 'block';
+	}
+
+	function updateTimeStats(timeInMs) {
 		forwardTimes = [timeInMs].concat(forwardTimes).slice(0, 30)
 		const avgTimeInMs = forwardTimes.reduce((total, t) => total + t) / forwardTimes.length
 		$('#time').val(`${Math.round(avgTimeInMs)} ms`)
 		$('#fps').val(`${faceapi.utils.round(1000 / avgTimeInMs)}`)
-	  }
-  
-	  function length(pt1, pt2) {
+	}
+
+	function length(pt1, pt2) {
 		return Math.sqrt(Math.pow(pt2._x - pt1._x, 2) + Math.pow(pt2._y - pt1._y, 2));
-	  }
-  
-	  function detectMouthClosed(mouthPoints) {
+	}
+
+	function detectMouthClosed(mouthPoints) {
 		const currInnerWidth = length(mouthPoints[12], mouthPoints[16]);
 		const currInnerHeight = length(mouthPoints[14], mouthPoints[18]);
 		if (currInnerHeight / currInnerWidth < 0.095) {
-		  return true;
+			return true;
 		} else {
-		  return false;
+			return false;
 		}
-	  }
-  
-	  function getRestingMeasures(mouthPoints) {
+	}
+
+	function getRestingMeasures(mouthPoints) {
 		return restingMeasureObj = {
-		  'dist_0_6': length(mouthPoints[0], mouthPoints[6]), // left outer to right outer
-		  'dist_3_9': length(mouthPoints[3], mouthPoints[9]), // upper outer to lower outer
-		  'dist_13_15': length(mouthPoints[13], mouthPoints[15]), // upper inner left to upper inner right
-		  'dist_17_19': length(mouthPoints[17], mouthPoints[19]) // lower inner left to lower inner right
+			'dist_0_6': length(mouthPoints[0], mouthPoints[6]), // left outer to right outer
+			'dist_3_9': length(mouthPoints[3], mouthPoints[9]), // upper outer to lower outer
+			'dist_13_15': length(mouthPoints[13], mouthPoints[15]), // upper inner left to upper inner right
+			'dist_17_19': length(mouthPoints[17], mouthPoints[19]) // lower inner left to lower inner right
 		};
-	  }
-  
-	  function adjustAMouthPoints(mouthPoints, restingMeasures) {
+	}
+
+	function adjustAMouthPoints(mouthPoints, restingMeasures) {
 		const currOuterWidth = length(mouthPoints[0], mouthPoints[6]);
 		const currInnerWidth = length(mouthPoints[12], mouthPoints[16]);
 		const currInnerHeight = length(mouthPoints[14], mouthPoints[18]);
@@ -128,164 +131,164 @@
 			currOuterWidth / restingMeasures['dist_0_6'] < 1.1 &&
 			currInnerHeight / currInnerWidth > 0.3 &&
 			currInnerHeight / currInnerWidth < 0.5) { // success
-			  console.log(currInnerHeight / currInnerWidth);
-			  return null;
+				console.log(currInnerHeight / currInnerWidth);
+				return null;
 		} else {
-		  // point 0, 6
-		  const x0 = mouthPoints[0]._x, y0 = mouthPoints[0]._y;
-		  const x6 = mouthPoints[6]._x, y6 = mouthPoints[6]._y;
-		  delta_0_6 = (currOuterWidth - restingMeasures['dist_0_6']) / (2 * currOuterWidth);
-		  mouthPoints[0] = {_x: x0 + (x6 - x0) * delta_0_6, _y: y0 + (y6 - y0) * delta_0_6}
-		  mouthPoints[6] = {_x: x6 - (x6 - x0) * delta_0_6, _y: y6 - (y6 - y0) * delta_0_6}
-  
-		  // sin, cos
-		  const sin = (y6 - y0) / currOuterWidth;
-		  const cos = (x6 - x0) / currOuterWidth;
-  
-		  // point 13, 19
-		  const x13 = mouthPoints[13]._x, y13 = mouthPoints[13]._y;
-		  const x19 = mouthPoints[19]._x, y19 = mouthPoints[19]._y;
-		  const h_13_19 = currInnerWidth * 0.38 - lipHeight;
-		  mouthPoints[13] = {_x: (x13 + x19)/2 + h_13_19 * sin, _y: (y13 + y19)/2 - h_13_19 * cos};
-		  mouthPoints[19] = {_x: (x13 + x19)/2 - h_13_19 * sin, _y: (y13 + y19)/2 + h_13_19 * cos};
-  
-		  // point 14, 18
-		  const x14 = mouthPoints[14]._x, y14 = mouthPoints[14]._y;
-		  const x18 = mouthPoints[18]._x, y18 = mouthPoints[18]._y;
-		  const h_14_18 = currInnerWidth * 0.4 - lipHeight;
-		  mouthPoints[14] = {_x: (x14 + x18)/2 + h_14_18 * sin, _y: (y14 + y18)/2 - h_14_18 * cos};
-		  mouthPoints[18] = {_x: (x14 + x18)/2 - h_14_18 * sin, _y: (y14 + y18)/2 + h_14_18 * cos};
-  
-		  // point 15, 17
-		  const x15 = mouthPoints[15]._x, y15 = mouthPoints[15]._y;
-		  const x17 = mouthPoints[17]._x, y17 = mouthPoints[17]._y;
-		  const h_15_17 = currInnerWidth * 0.38 - lipHeight;
-		  mouthPoints[15] = {_x: (x15 + x17)/2 + h_15_17 * sin, _y: (y15 + y17)/2 - h_15_17 * cos};
-		  mouthPoints[17] = {_x: (x15 + x17)/2 - h_15_17 * sin, _y: (y15 + y17)/2 + h_15_17 * cos};
-  
-		  // point 2, 10
-		  const x2 = mouthPoints[2]._x, y2 = mouthPoints[2]._y;
-		  const x10 = mouthPoints[10]._x, y10 = mouthPoints[10]._y;
-		  const h_2_10 = currInnerWidth * 0.38;
-		  mouthPoints[2] = {_x: (x2 + x10)/2 + h_2_10 * sin, _y: (y2 + y10)/2 - h_2_10 * cos}
-		  mouthPoints[10] = {_x: (x2 + x10)/2 - h_2_10 * sin, _y: (y2 + y10)/2 + h_2_10 * cos}
-  
-		  // point 3, 9
-		  const x3 = mouthPoints[3]._x, y3 = mouthPoints[3]._y;
-		  const x9 = mouthPoints[9]._x, y9 = mouthPoints[9]._y;
-		  const h_3_9 = currInnerWidth * 0.4;
-		  mouthPoints[3] = {_x: (x3 + x9)/2 + h_3_9 * sin, _y: (y3 + y9)/2 - h_3_9 * cos};
-		  mouthPoints[9] = {_x: (x3 + x9)/2 - h_3_9 * sin, _y: (y3 + y9)/2 + h_3_9 * cos};
-  
-		  // point 4, 8
-		  const x4 = mouthPoints[4]._x, y4 = mouthPoints[4]._y;
-		  const x8 = mouthPoints[8]._x, y8 = mouthPoints[8]._y;
-		  const h_4_8 = currInnerWidth * 0.38;
-		  mouthPoints[4] = {_x: (x4 + x8)/2 + h_4_8 * sin, _y: (y4 + y8)/2 - h_4_8 * cos}
-		  mouthPoints[8] = {_x: (x4 + x8)/2 - h_4_8 * sin, _y: (y4 + y8)/2 + h_4_8 * cos}
-  
-		  // point 1, 11
-		  const x1 = mouthPoints[1]._x, y1 = mouthPoints[1]._y;
-		  const x11 = mouthPoints[11]._x, y11 = mouthPoints[11]._y;
-		  const h_1_11 = currInnerWidth * 0.3; // not hardcode
-		  mouthPoints[1] = {_x: (x1 + x11)/2 + h_1_11 * sin, _y: (y1 + y11)/2 - h_1_11 * cos}
-		  mouthPoints[11] = {_x: (x1 + x11)/2 - h_1_11 * sin, _y: (y1 + y11)/2 + h_1_11 * cos}
-  
-		  // point 5, 7
-		  const x5 = mouthPoints[5]._x, y5 = mouthPoints[5]._y;
-		  const x7 = mouthPoints[7]._x, y7 = mouthPoints[7]._y;
-		  const h_5_7 = currInnerWidth * 0.3;
-		  mouthPoints[5] = {_x: (x5 + x7)/2 + h_5_7 * sin, _y: (y5 + y7)/2 - h_5_7 * cos}
-		  mouthPoints[7] = {_x: (x5 + x7)/2 - h_5_7 * sin, _y: (y5 + y7)/2 + h_5_7 * cos}
-  
-		  return mouthPoints;
+			// point 0, 6
+			const x0 = mouthPoints[0]._x, y0 = mouthPoints[0]._y;
+			const x6 = mouthPoints[6]._x, y6 = mouthPoints[6]._y;
+			delta_0_6 = (currOuterWidth - restingMeasures['dist_0_6']) / (2 * currOuterWidth);
+			mouthPoints[0] = {_x: x0 + (x6 - x0) * delta_0_6, _y: y0 + (y6 - y0) * delta_0_6}
+			mouthPoints[6] = {_x: x6 - (x6 - x0) * delta_0_6, _y: y6 - (y6 - y0) * delta_0_6}
+
+			// sin, cos
+			const sin = (y6 - y0) / currOuterWidth;
+			const cos = (x6 - x0) / currOuterWidth;
+
+			// point 13, 19
+			const x13 = mouthPoints[13]._x, y13 = mouthPoints[13]._y;
+			const x19 = mouthPoints[19]._x, y19 = mouthPoints[19]._y;
+			const h_13_19 = currInnerWidth * 0.38 - lipHeight;
+			mouthPoints[13] = {_x: (x13 + x19)/2 + h_13_19 * sin, _y: (y13 + y19)/2 - h_13_19 * cos};
+			mouthPoints[19] = {_x: (x13 + x19)/2 - h_13_19 * sin, _y: (y13 + y19)/2 + h_13_19 * cos};
+
+			// point 14, 18
+			const x14 = mouthPoints[14]._x, y14 = mouthPoints[14]._y;
+			const x18 = mouthPoints[18]._x, y18 = mouthPoints[18]._y;
+			const h_14_18 = currInnerWidth * 0.4 - lipHeight;
+			mouthPoints[14] = {_x: (x14 + x18)/2 + h_14_18 * sin, _y: (y14 + y18)/2 - h_14_18 * cos};
+			mouthPoints[18] = {_x: (x14 + x18)/2 - h_14_18 * sin, _y: (y14 + y18)/2 + h_14_18 * cos};
+
+			// point 15, 17
+			const x15 = mouthPoints[15]._x, y15 = mouthPoints[15]._y;
+			const x17 = mouthPoints[17]._x, y17 = mouthPoints[17]._y;
+			const h_15_17 = currInnerWidth * 0.38 - lipHeight;
+			mouthPoints[15] = {_x: (x15 + x17)/2 + h_15_17 * sin, _y: (y15 + y17)/2 - h_15_17 * cos};
+			mouthPoints[17] = {_x: (x15 + x17)/2 - h_15_17 * sin, _y: (y15 + y17)/2 + h_15_17 * cos};
+
+			// point 2, 10
+			const x2 = mouthPoints[2]._x, y2 = mouthPoints[2]._y;
+			const x10 = mouthPoints[10]._x, y10 = mouthPoints[10]._y;
+			const h_2_10 = currInnerWidth * 0.38;
+			mouthPoints[2] = {_x: (x2 + x10)/2 + h_2_10 * sin, _y: (y2 + y10)/2 - h_2_10 * cos}
+			mouthPoints[10] = {_x: (x2 + x10)/2 - h_2_10 * sin, _y: (y2 + y10)/2 + h_2_10 * cos}
+
+			// point 3, 9
+			const x3 = mouthPoints[3]._x, y3 = mouthPoints[3]._y;
+			const x9 = mouthPoints[9]._x, y9 = mouthPoints[9]._y;
+			const h_3_9 = currInnerWidth * 0.4;
+			mouthPoints[3] = {_x: (x3 + x9)/2 + h_3_9 * sin, _y: (y3 + y9)/2 - h_3_9 * cos};
+			mouthPoints[9] = {_x: (x3 + x9)/2 - h_3_9 * sin, _y: (y3 + y9)/2 + h_3_9 * cos};
+
+			// point 4, 8
+			const x4 = mouthPoints[4]._x, y4 = mouthPoints[4]._y;
+			const x8 = mouthPoints[8]._x, y8 = mouthPoints[8]._y;
+			const h_4_8 = currInnerWidth * 0.38;
+			mouthPoints[4] = {_x: (x4 + x8)/2 + h_4_8 * sin, _y: (y4 + y8)/2 - h_4_8 * cos}
+			mouthPoints[8] = {_x: (x4 + x8)/2 - h_4_8 * sin, _y: (y4 + y8)/2 + h_4_8 * cos}
+
+			// point 1, 11
+			const x1 = mouthPoints[1]._x, y1 = mouthPoints[1]._y;
+			const x11 = mouthPoints[11]._x, y11 = mouthPoints[11]._y;
+			const h_1_11 = currInnerWidth * 0.3; // not hardcode
+			mouthPoints[1] = {_x: (x1 + x11)/2 + h_1_11 * sin, _y: (y1 + y11)/2 - h_1_11 * cos}
+			mouthPoints[11] = {_x: (x1 + x11)/2 - h_1_11 * sin, _y: (y1 + y11)/2 + h_1_11 * cos}
+
+			// point 5, 7
+			const x5 = mouthPoints[5]._x, y5 = mouthPoints[5]._y;
+			const x7 = mouthPoints[7]._x, y7 = mouthPoints[7]._y;
+			const h_5_7 = currInnerWidth * 0.3;
+			mouthPoints[5] = {_x: (x5 + x7)/2 + h_5_7 * sin, _y: (y5 + y7)/2 - h_5_7 * cos}
+			mouthPoints[7] = {_x: (x5 + x7)/2 - h_5_7 * sin, _y: (y5 + y7)/2 + h_5_7 * cos}
+
+			return mouthPoints;
 		}
-	  }
-  
-	  function adjustEMouthPoints(mouthPoints, restingMeasures) {
+	}
+
+	function adjustEMouthPoints(mouthPoints, restingMeasures) {
 		const currOuterWidth = length(mouthPoints[0], mouthPoints[6]);
 		const currInnerWidth = length(mouthPoints[12], mouthPoints[16]);
 		const currInnerHeight = length(mouthPoints[14], mouthPoints[18]);
 		const lipHeight = length(mouthPoints[3], mouthPoints[14]);
 		if (currOuterWidth / restingMeasures['dist_0_6'] > 0.9 &&
-		  currOuterWidth / restingMeasures['dist_0_6'] < 1.15 &&
-		  currInnerHeight / currInnerWidth > 0.2 &&
-		  currInnerHeight / currInnerWidth < 0.35) { // success
+			currOuterWidth / restingMeasures['dist_0_6'] < 1.15 &&
+			currInnerHeight / currInnerWidth > 0.2 &&
+			currInnerHeight / currInnerWidth < 0.35) { // success
 			console.log(currInnerHeight / currInnerWidth);
 			return null;
 		} else {
-		  // point 0, 6
-		  const x0 = mouthPoints[0]._x, y0 = mouthPoints[0]._y;
-		  const x6 = mouthPoints[6]._x, y6 = mouthPoints[6]._y;
-		  delta_0_6 = (currOuterWidth - restingMeasures['dist_0_6']) / (2 * currOuterWidth);
-		  mouthPoints[0] = {_x: x0 + (x6 - x0) * delta_0_6, _y: y0 + (y6 - y0) * delta_0_6}
-		  mouthPoints[6] = {_x: x6 - (x6 - x0) * delta_0_6, _y: y6 - (y6 - y0) * delta_0_6}
-  
-		  // sin, cos
-		  const sin = (y6 - y0) / currOuterWidth;
-		  const cos = (x6 - x0) / currOuterWidth;
-  
-		  // point 13, 19
-		  const x13 = mouthPoints[13]._x, y13 = mouthPoints[13]._y;
-		  const x19 = mouthPoints[19]._x, y19 = mouthPoints[19]._y;
-		  const h_13_19 = currInnerWidth * 0.28 - lipHeight;
-		  mouthPoints[13] = {_x: (x13 + x19)/2 + h_13_19 * sin, _y: (y13 + y19)/2 - h_13_19 * cos};
-		  mouthPoints[19] = {_x: (x13 + x19)/2 - h_13_19 * sin, _y: (y13 + y19)/2 + h_13_19 * cos};
-  
-		  // point 14, 18
-		  const x14 = mouthPoints[14]._x, y14 = mouthPoints[14]._y;
-		  const x18 = mouthPoints[18]._x, y18 = mouthPoints[18]._y;
-		  const h_14_18 = currInnerWidth * 0.3 - lipHeight;
-		  mouthPoints[14] = {_x: (x14 + x18)/2 + h_14_18 * sin, _y: (y14 + y18)/2 - h_14_18 * cos};
-		  mouthPoints[18] = {_x: (x14 + x18)/2 - h_14_18 * sin, _y: (y14 + y18)/2 + h_14_18 * cos};
-  
-		  // point 15, 17
-		  const x15 = mouthPoints[15]._x, y15 = mouthPoints[15]._y;
-		  const x17 = mouthPoints[17]._x, y17 = mouthPoints[17]._y;
-		  const h_15_17 = currInnerWidth * 0.28 - lipHeight;
-		  mouthPoints[15] = {_x: (x15 + x17)/2 + h_15_17 * sin, _y: (y15 + y17)/2 - h_15_17 * cos};
-		  mouthPoints[17] = {_x: (x15 + x17)/2 - h_15_17 * sin, _y: (y15 + y17)/2 + h_15_17 * cos};
-  
-		  // point 2, 10
-		  const x2 = mouthPoints[2]._x, y2 = mouthPoints[2]._y;
-		  const x10 = mouthPoints[10]._x, y10 = mouthPoints[10]._y;
-		  const h_2_10 = currInnerWidth * 0.28;
-		  mouthPoints[2] = {_x: (x2 + x10)/2 + h_2_10 * sin, _y: (y2 + y10)/2 - h_2_10 * cos}
-		  mouthPoints[10] = {_x: (x2 + x10)/2 - h_2_10 * sin, _y: (y2 + y10)/2 + h_2_10 * cos}
-  
-		  // point 3, 9
-		  const x3 = mouthPoints[3]._x, y3 = mouthPoints[3]._y;
-		  const x9 = mouthPoints[9]._x, y9 = mouthPoints[9]._y;
-		  const h_3_9 = currInnerWidth * 0.3;
-		  mouthPoints[3] = {_x: (x3 + x9)/2 + h_3_9 * sin, _y: (y3 + y9)/2 - h_3_9 * cos};
-		  mouthPoints[9] = {_x: (x3 + x9)/2 - h_3_9 * sin, _y: (y3 + y9)/2 + h_3_9 * cos};
-  
-		  // point 4, 8
-		  const x4 = mouthPoints[4]._x, y4 = mouthPoints[4]._y;
-		  const x8 = mouthPoints[8]._x, y8 = mouthPoints[8]._y;
-		  const h_4_8 = currInnerWidth * 0.28;
-		  mouthPoints[4] = {_x: (x4 + x8)/2 + h_4_8 * sin, _y: (y4 + y8)/2 - h_4_8 * cos}
-		  mouthPoints[8] = {_x: (x4 + x8)/2 - h_4_8 * sin, _y: (y4 + y8)/2 + h_4_8 * cos}
-  
-		  // point 1, 11
-		  const x1 = mouthPoints[1]._x, y1 = mouthPoints[1]._y;
-		  const x11 = mouthPoints[11]._x, y11 = mouthPoints[11]._y;
-		  const h_1_11 = currInnerWidth * 0.2; // not hardcode
-		  mouthPoints[1] = {_x: (x1 + x11)/2 + h_1_11 * sin, _y: (y1 + y11)/2 - h_1_11 * cos}
-		  mouthPoints[11] = {_x: (x1 + x11)/2 - h_1_11 * sin, _y: (y1 + y11)/2 + h_1_11 * cos}
-  
-		  // point 5, 7
-		  const x5 = mouthPoints[5]._x, y5 = mouthPoints[5]._y;
-		  const x7 = mouthPoints[7]._x, y7 = mouthPoints[7]._y;
-		  const h_5_7 = currInnerWidth * 0.2;
-		  mouthPoints[5] = {_x: (x5 + x7)/2 + h_5_7 * sin, _y: (y5 + y7)/2 - h_5_7 * cos}
-		  mouthPoints[7] = {_x: (x5 + x7)/2 - h_5_7 * sin, _y: (y5 + y7)/2 + h_5_7 * cos}
-  
-		  return mouthPoints;
+			// point 0, 6
+			const x0 = mouthPoints[0]._x, y0 = mouthPoints[0]._y;
+			const x6 = mouthPoints[6]._x, y6 = mouthPoints[6]._y;
+			delta_0_6 = (currOuterWidth - restingMeasures['dist_0_6']) / (2 * currOuterWidth);
+			mouthPoints[0] = {_x: x0 + (x6 - x0) * delta_0_6, _y: y0 + (y6 - y0) * delta_0_6}
+			mouthPoints[6] = {_x: x6 - (x6 - x0) * delta_0_6, _y: y6 - (y6 - y0) * delta_0_6}
+
+			// sin, cos
+			const sin = (y6 - y0) / currOuterWidth;
+			const cos = (x6 - x0) / currOuterWidth;
+
+			// point 13, 19
+			const x13 = mouthPoints[13]._x, y13 = mouthPoints[13]._y;
+			const x19 = mouthPoints[19]._x, y19 = mouthPoints[19]._y;
+			const h_13_19 = currInnerWidth * 0.28 - lipHeight;
+			mouthPoints[13] = {_x: (x13 + x19)/2 + h_13_19 * sin, _y: (y13 + y19)/2 - h_13_19 * cos};
+			mouthPoints[19] = {_x: (x13 + x19)/2 - h_13_19 * sin, _y: (y13 + y19)/2 + h_13_19 * cos};
+
+			// point 14, 18
+			const x14 = mouthPoints[14]._x, y14 = mouthPoints[14]._y;
+			const x18 = mouthPoints[18]._x, y18 = mouthPoints[18]._y;
+			const h_14_18 = currInnerWidth * 0.3 - lipHeight;
+			mouthPoints[14] = {_x: (x14 + x18)/2 + h_14_18 * sin, _y: (y14 + y18)/2 - h_14_18 * cos};
+			mouthPoints[18] = {_x: (x14 + x18)/2 - h_14_18 * sin, _y: (y14 + y18)/2 + h_14_18 * cos};
+
+			// point 15, 17
+			const x15 = mouthPoints[15]._x, y15 = mouthPoints[15]._y;
+			const x17 = mouthPoints[17]._x, y17 = mouthPoints[17]._y;
+			const h_15_17 = currInnerWidth * 0.28 - lipHeight;
+			mouthPoints[15] = {_x: (x15 + x17)/2 + h_15_17 * sin, _y: (y15 + y17)/2 - h_15_17 * cos};
+			mouthPoints[17] = {_x: (x15 + x17)/2 - h_15_17 * sin, _y: (y15 + y17)/2 + h_15_17 * cos};
+
+			// point 2, 10
+			const x2 = mouthPoints[2]._x, y2 = mouthPoints[2]._y;
+			const x10 = mouthPoints[10]._x, y10 = mouthPoints[10]._y;
+			const h_2_10 = currInnerWidth * 0.28;
+			mouthPoints[2] = {_x: (x2 + x10)/2 + h_2_10 * sin, _y: (y2 + y10)/2 - h_2_10 * cos}
+			mouthPoints[10] = {_x: (x2 + x10)/2 - h_2_10 * sin, _y: (y2 + y10)/2 + h_2_10 * cos}
+
+			// point 3, 9
+			const x3 = mouthPoints[3]._x, y3 = mouthPoints[3]._y;
+			const x9 = mouthPoints[9]._x, y9 = mouthPoints[9]._y;
+			const h_3_9 = currInnerWidth * 0.3;
+			mouthPoints[3] = {_x: (x3 + x9)/2 + h_3_9 * sin, _y: (y3 + y9)/2 - h_3_9 * cos};
+			mouthPoints[9] = {_x: (x3 + x9)/2 - h_3_9 * sin, _y: (y3 + y9)/2 + h_3_9 * cos};
+
+			// point 4, 8
+			const x4 = mouthPoints[4]._x, y4 = mouthPoints[4]._y;
+			const x8 = mouthPoints[8]._x, y8 = mouthPoints[8]._y;
+			const h_4_8 = currInnerWidth * 0.28;
+			mouthPoints[4] = {_x: (x4 + x8)/2 + h_4_8 * sin, _y: (y4 + y8)/2 - h_4_8 * cos}
+			mouthPoints[8] = {_x: (x4 + x8)/2 - h_4_8 * sin, _y: (y4 + y8)/2 + h_4_8 * cos}
+
+			// point 1, 11
+			const x1 = mouthPoints[1]._x, y1 = mouthPoints[1]._y;
+			const x11 = mouthPoints[11]._x, y11 = mouthPoints[11]._y;
+			const h_1_11 = currInnerWidth * 0.2; // not hardcode
+			mouthPoints[1] = {_x: (x1 + x11)/2 + h_1_11 * sin, _y: (y1 + y11)/2 - h_1_11 * cos}
+			mouthPoints[11] = {_x: (x1 + x11)/2 - h_1_11 * sin, _y: (y1 + y11)/2 + h_1_11 * cos}
+
+			// point 5, 7
+			const x5 = mouthPoints[5]._x, y5 = mouthPoints[5]._y;
+			const x7 = mouthPoints[7]._x, y7 = mouthPoints[7]._y;
+			const h_5_7 = currInnerWidth * 0.2;
+			mouthPoints[5] = {_x: (x5 + x7)/2 + h_5_7 * sin, _y: (y5 + y7)/2 - h_5_7 * cos}
+			mouthPoints[7] = {_x: (x5 + x7)/2 - h_5_7 * sin, _y: (y5 + y7)/2 + h_5_7 * cos}
+
+			return mouthPoints;
 		}
-	  }
-  
-	  function adjustIMouthPoints(mouthPoints, restingMeasures) {
+	}
+
+	function adjustIMouthPoints(mouthPoints, restingMeasures) {
 		const currOuterWidth = length(mouthPoints[0], mouthPoints[6]);
 		const currInnerWidth = length(mouthPoints[12], mouthPoints[16]);
 		const currInnerHeight = length(mouthPoints[14], mouthPoints[18]);
@@ -294,81 +297,81 @@
 			currOuterWidth / restingMeasures['dist_0_6'] < 1.3 &&
 			currInnerHeight / currInnerWidth > 0.13 &&
 			currInnerHeight / currInnerWidth < 0.28) { // success
-			  console.log(currInnerHeight / currInnerWidth, currOuterWidth / restingMeasures['dist_0_6']);
-			  return null;
+				console.log(currInnerHeight / currInnerWidth, currOuterWidth / restingMeasures['dist_0_6']);
+				return null;
 		} else {
-		  // point 0, 6
-		  const x0 = mouthPoints[0]._x, y0 = mouthPoints[0]._y;
-		  const x6 = mouthPoints[6]._x, y6 = mouthPoints[6]._y;
-		  delta_0_6 = (currOuterWidth - restingMeasures['dist_0_6']) / (2 * currOuterWidth) - 0.15;
-		  mouthPoints[0] = {_x: x0 + (x6 - x0) * delta_0_6, _y: y0 + (y6 - y0) * delta_0_6}
-		  mouthPoints[6] = {_x: x6 - (x6 - x0) * delta_0_6, _y: y6 - (y6 - y0) * delta_0_6}
-  
-		  // sin, cos
-		  const sin = (y6 - y0) / currOuterWidth;
-		  const cos = (x6 - x0) / currOuterWidth;
-  
-		  // point 13, 19
-		  const x13 = mouthPoints[13]._x, y13 = mouthPoints[13]._y;
-		  const x19 = mouthPoints[19]._x, y19 = mouthPoints[19]._y;
-		  const h_13_19 = currInnerWidth * 0.18 - lipHeight;
-		  mouthPoints[13] = {_x: (x13 + x19)/2 + h_13_19 * sin, _y: (y13 + y19)/2 - h_13_19 * cos};
-		  mouthPoints[19] = {_x: (x13 + x19)/2 - h_13_19 * sin, _y: (y13 + y19)/2 + h_13_19 * cos};
-  
-		  // point 14, 18
-		  const x14 = mouthPoints[14]._x, y14 = mouthPoints[14]._y;
-		  const x18 = mouthPoints[18]._x, y18 = mouthPoints[18]._y;
-		  const h_14_18 = currInnerWidth * 0.2 - lipHeight;
-		  mouthPoints[14] = {_x: (x14 + x18)/2 + h_14_18 * sin, _y: (y14 + y18)/2 - h_14_18 * cos};
-		  mouthPoints[18] = {_x: (x14 + x18)/2 - h_14_18 * sin, _y: (y14 + y18)/2 + h_14_18 * cos};
-  
-		  // point 15, 17
-		  const x15 = mouthPoints[15]._x, y15 = mouthPoints[15]._y;
-		  const x17 = mouthPoints[17]._x, y17 = mouthPoints[17]._y;
-		  const h_15_17 = currInnerWidth * 0.18 - lipHeight;
-		  mouthPoints[15] = {_x: (x15 + x17)/2 + h_15_17 * sin, _y: (y15 + y17)/2 - h_15_17 * cos};
-		  mouthPoints[17] = {_x: (x15 + x17)/2 - h_15_17 * sin, _y: (y15 + y17)/2 + h_15_17 * cos};
-  
-		  // point 2, 10
-		  const x2 = mouthPoints[2]._x, y2 = mouthPoints[2]._y;
-		  const x10 = mouthPoints[10]._x, y10 = mouthPoints[10]._y;
-		  const h_2_10 = currInnerWidth * 0.18;
-		  mouthPoints[2] = {_x: (x2 + x10)/2 + h_2_10 * sin, _y: (y2 + y10)/2 - h_2_10 * cos}
-		  mouthPoints[10] = {_x: (x2 + x10)/2 - h_2_10 * sin, _y: (y2 + y10)/2 + h_2_10 * cos}
-  
-		  // point 3, 9
-		  const x3 = mouthPoints[3]._x, y3 = mouthPoints[3]._y;
-		  const x9 = mouthPoints[9]._x, y9 = mouthPoints[9]._y;
-		  const h_3_9 = currInnerWidth * 0.2;
-		  mouthPoints[3] = {_x: (x3 + x9)/2 + h_3_9 * sin, _y: (y3 + y9)/2 - h_3_9 * cos};
-		  mouthPoints[9] = {_x: (x3 + x9)/2 - h_3_9 * sin, _y: (y3 + y9)/2 + h_3_9 * cos};
-  
-		  // point 4, 8
-		  const x4 = mouthPoints[4]._x, y4 = mouthPoints[4]._y;
-		  const x8 = mouthPoints[8]._x, y8 = mouthPoints[8]._y;
-		  const h_4_8 = currInnerWidth * 0.18;
-		  mouthPoints[4] = {_x: (x4 + x8)/2 + h_4_8 * sin, _y: (y4 + y8)/2 - h_4_8 * cos}
-		  mouthPoints[8] = {_x: (x4 + x8)/2 - h_4_8 * sin, _y: (y4 + y8)/2 + h_4_8 * cos}
-  
-		  // point 1, 11
-		  const x1 = mouthPoints[1]._x, y1 = mouthPoints[1]._y;
-		  const x11 = mouthPoints[11]._x, y11 = mouthPoints[11]._y;
-		  const h_1_11 = currInnerWidth * 0.13; // not hardcode
-		  mouthPoints[1] = {_x: (x1 + x11)/2 + h_1_11 * sin, _y: (y1 + y11)/2 - h_1_11 * cos}
-		  mouthPoints[11] = {_x: (x1 + x11)/2 - h_1_11 * sin, _y: (y1 + y11)/2 + h_1_11 * cos}
-  
-		  // point 5, 7
-		  const x5 = mouthPoints[5]._x, y5 = mouthPoints[5]._y;
-		  const x7 = mouthPoints[7]._x, y7 = mouthPoints[7]._y;
-		  const h_5_7 = currInnerWidth * 0.13;
-		  mouthPoints[5] = {_x: (x5 + x7)/2 + h_5_7 * sin, _y: (y5 + y7)/2 - h_5_7 * cos}
-		  mouthPoints[7] = {_x: (x5 + x7)/2 - h_5_7 * sin, _y: (y5 + y7)/2 + h_5_7 * cos}
-  
-		  return mouthPoints;
+			// point 0, 6
+			const x0 = mouthPoints[0]._x, y0 = mouthPoints[0]._y;
+			const x6 = mouthPoints[6]._x, y6 = mouthPoints[6]._y;
+			delta_0_6 = (currOuterWidth - restingMeasures['dist_0_6']) / (2 * currOuterWidth) - 0.15;
+			mouthPoints[0] = {_x: x0 + (x6 - x0) * delta_0_6, _y: y0 + (y6 - y0) * delta_0_6}
+			mouthPoints[6] = {_x: x6 - (x6 - x0) * delta_0_6, _y: y6 - (y6 - y0) * delta_0_6}
+
+			// sin, cos
+			const sin = (y6 - y0) / currOuterWidth;
+			const cos = (x6 - x0) / currOuterWidth;
+
+			// point 13, 19
+			const x13 = mouthPoints[13]._x, y13 = mouthPoints[13]._y;
+			const x19 = mouthPoints[19]._x, y19 = mouthPoints[19]._y;
+			const h_13_19 = currInnerWidth * 0.18 - lipHeight;
+			mouthPoints[13] = {_x: (x13 + x19)/2 + h_13_19 * sin, _y: (y13 + y19)/2 - h_13_19 * cos};
+			mouthPoints[19] = {_x: (x13 + x19)/2 - h_13_19 * sin, _y: (y13 + y19)/2 + h_13_19 * cos};
+
+			// point 14, 18
+			const x14 = mouthPoints[14]._x, y14 = mouthPoints[14]._y;
+			const x18 = mouthPoints[18]._x, y18 = mouthPoints[18]._y;
+			const h_14_18 = currInnerWidth * 0.2 - lipHeight;
+			mouthPoints[14] = {_x: (x14 + x18)/2 + h_14_18 * sin, _y: (y14 + y18)/2 - h_14_18 * cos};
+			mouthPoints[18] = {_x: (x14 + x18)/2 - h_14_18 * sin, _y: (y14 + y18)/2 + h_14_18 * cos};
+
+			// point 15, 17
+			const x15 = mouthPoints[15]._x, y15 = mouthPoints[15]._y;
+			const x17 = mouthPoints[17]._x, y17 = mouthPoints[17]._y;
+			const h_15_17 = currInnerWidth * 0.18 - lipHeight;
+			mouthPoints[15] = {_x: (x15 + x17)/2 + h_15_17 * sin, _y: (y15 + y17)/2 - h_15_17 * cos};
+			mouthPoints[17] = {_x: (x15 + x17)/2 - h_15_17 * sin, _y: (y15 + y17)/2 + h_15_17 * cos};
+
+			// point 2, 10
+			const x2 = mouthPoints[2]._x, y2 = mouthPoints[2]._y;
+			const x10 = mouthPoints[10]._x, y10 = mouthPoints[10]._y;
+			const h_2_10 = currInnerWidth * 0.18;
+			mouthPoints[2] = {_x: (x2 + x10)/2 + h_2_10 * sin, _y: (y2 + y10)/2 - h_2_10 * cos}
+			mouthPoints[10] = {_x: (x2 + x10)/2 - h_2_10 * sin, _y: (y2 + y10)/2 + h_2_10 * cos}
+
+			// point 3, 9
+			const x3 = mouthPoints[3]._x, y3 = mouthPoints[3]._y;
+			const x9 = mouthPoints[9]._x, y9 = mouthPoints[9]._y;
+			const h_3_9 = currInnerWidth * 0.2;
+			mouthPoints[3] = {_x: (x3 + x9)/2 + h_3_9 * sin, _y: (y3 + y9)/2 - h_3_9 * cos};
+			mouthPoints[9] = {_x: (x3 + x9)/2 - h_3_9 * sin, _y: (y3 + y9)/2 + h_3_9 * cos};
+
+			// point 4, 8
+			const x4 = mouthPoints[4]._x, y4 = mouthPoints[4]._y;
+			const x8 = mouthPoints[8]._x, y8 = mouthPoints[8]._y;
+			const h_4_8 = currInnerWidth * 0.18;
+			mouthPoints[4] = {_x: (x4 + x8)/2 + h_4_8 * sin, _y: (y4 + y8)/2 - h_4_8 * cos}
+			mouthPoints[8] = {_x: (x4 + x8)/2 - h_4_8 * sin, _y: (y4 + y8)/2 + h_4_8 * cos}
+
+			// point 1, 11
+			const x1 = mouthPoints[1]._x, y1 = mouthPoints[1]._y;
+			const x11 = mouthPoints[11]._x, y11 = mouthPoints[11]._y;
+			const h_1_11 = currInnerWidth * 0.13; // not hardcode
+			mouthPoints[1] = {_x: (x1 + x11)/2 + h_1_11 * sin, _y: (y1 + y11)/2 - h_1_11 * cos}
+			mouthPoints[11] = {_x: (x1 + x11)/2 - h_1_11 * sin, _y: (y1 + y11)/2 + h_1_11 * cos}
+
+			// point 5, 7
+			const x5 = mouthPoints[5]._x, y5 = mouthPoints[5]._y;
+			const x7 = mouthPoints[7]._x, y7 = mouthPoints[7]._y;
+			const h_5_7 = currInnerWidth * 0.13;
+			mouthPoints[5] = {_x: (x5 + x7)/2 + h_5_7 * sin, _y: (y5 + y7)/2 - h_5_7 * cos}
+			mouthPoints[7] = {_x: (x5 + x7)/2 - h_5_7 * sin, _y: (y5 + y7)/2 + h_5_7 * cos}
+
+			return mouthPoints;
 		}
-	  }
-  
-	  function adjustOMouthPoints(mouthPoints, ratio) {
+	}
+
+	function adjustOMouthPoints(mouthPoints, ratio) {
 		const currOuterWidth = length(mouthPoints[0], mouthPoints[6]);
 		const currInnerWidth = length(mouthPoints[12], mouthPoints[16]);
 		const currInnerHeight = length(mouthPoints[14], mouthPoints[18]);
@@ -382,231 +385,228 @@
 			currInnerHeight / currInnerWidth < 0.60 &&
 			currInnerUpperWidth / restingMeasures['dist_13_15'] < 1.05 &&
 			currInnerLowerWidth / restingMeasures['dist_17_19'] < 1.05) { // success
-			  console.log(currInnerHeight / currInnerWidth, currOuterWidth / restingMeasures['dist_0_6']);
-			  return null;
+				console.log(currInnerHeight / currInnerWidth, currOuterWidth / restingMeasures['dist_0_6']);
+				return null;
 		} else {
-		  // point 0, 6
-		  const x0 = mouthPoints[0]._x, y0 = mouthPoints[0]._y;
-		  const x6 = mouthPoints[6]._x, y6 = mouthPoints[6]._y;
-		  delta_0_6 = (currOuterWidth - restingMeasures['dist_0_6']) / (2 * currOuterWidth) + 0.1;
-		  mouthPoints[0] = {_x: x0 + (x6 - x0) * delta_0_6, _y: y0 + (y6 - y0) * delta_0_6}
-		  mouthPoints[6] = {_x: x6 - (x6 - x0) * delta_0_6, _y: y6 - (y6 - y0) * delta_0_6}
-  
-		  // sin, cos
-		  const sin = (y6 - y0) / currOuterWidth;
-		  const cos = (x6 - x0) / currOuterWidth;
-  
-		  // point 13, 19
-		  const x13 = mouthPoints[13]._x, y13 = mouthPoints[13]._y;
-		  const x19 = mouthPoints[19]._x, y19 = mouthPoints[19]._y;
-		  const h_13_19 = currInnerWidth * 0.38 - lipHeight;
-		  mouthPoints[13] = {_x: (x13 + x19)/2 + h_13_19 * sin, _y: (y13 + y19)/2 - h_13_19 * cos};
-		  mouthPoints[19] = {_x: (x13 + x19)/2 - h_13_19 * sin, _y: (y13 + y19)/2 + h_13_19 * cos};
-  
-		  // point 14, 18
-		  const x14 = mouthPoints[14]._x, y14 = mouthPoints[14]._y;
-		  const x18 = mouthPoints[18]._x, y18 = mouthPoints[18]._y;
-		  const h_14_18 = currInnerWidth * 0.4 - lipHeight;
-		  mouthPoints[14] = {_x: (x14 + x18)/2 + h_14_18 * sin, _y: (y14 + y18)/2 - h_14_18 * cos};
-		  mouthPoints[18] = {_x: (x14 + x18)/2 - h_14_18 * sin, _y: (y14 + y18)/2 + h_14_18 * cos};
-  
-		  // point 15, 17
-		  const x15 = mouthPoints[15]._x, y15 = mouthPoints[15]._y;
-		  const x17 = mouthPoints[17]._x, y17 = mouthPoints[17]._y;
-		  const h_15_17 = currInnerWidth * 0.38 - lipHeight;
-		  mouthPoints[15] = {_x: (x15 + x17)/2 + h_15_17 * sin, _y: (y15 + y17)/2 - h_15_17 * cos};
-		  mouthPoints[17] = {_x: (x15 + x17)/2 - h_15_17 * sin, _y: (y15 + y17)/2 + h_15_17 * cos};
-  
-		  // point 2, 10
-		  const x2 = mouthPoints[2]._x, y2 = mouthPoints[2]._y;
-		  const x10 = mouthPoints[10]._x, y10 = mouthPoints[10]._y;
-		  const h_2_10 = currInnerWidth * 0.38;
-		  mouthPoints[2] = {_x: (x2 + x10)/2 + h_2_10 * sin, _y: (y2 + y10)/2 - h_2_10 * cos}
-		  mouthPoints[10] = {_x: (x2 + x10)/2 - h_2_10 * sin, _y: (y2 + y10)/2 + h_2_10 * cos}
-  
-		  // point 3, 9
-		  const x3 = mouthPoints[3]._x, y3 = mouthPoints[3]._y;
-		  const x9 = mouthPoints[9]._x, y9 = mouthPoints[9]._y;
-		  const h_3_9 = currInnerWidth * 0.4;
-		  mouthPoints[3] = {_x: (x3 + x9)/2 + h_3_9 * sin, _y: (y3 + y9)/2 - h_3_9 * cos};
-		  mouthPoints[9] = {_x: (x3 + x9)/2 - h_3_9 * sin, _y: (y3 + y9)/2 + h_3_9 * cos};
-  
-		  // point 4, 8
-		  const x4 = mouthPoints[4]._x, y4 = mouthPoints[4]._y;
-		  const x8 = mouthPoints[8]._x, y8 = mouthPoints[8]._y;
-		  const h_4_8 = currInnerWidth * 0.38;
-		  mouthPoints[4] = {_x: (x4 + x8)/2 + h_4_8 * sin, _y: (y4 + y8)/2 - h_4_8 * cos}
-		  mouthPoints[8] = {_x: (x4 + x8)/2 - h_4_8 * sin, _y: (y4 + y8)/2 + h_4_8 * cos}
-  
-		  // point 1, 11
-		  const x1 = mouthPoints[1]._x, y1 = mouthPoints[1]._y;
-		  const x11 = mouthPoints[11]._x, y11 = mouthPoints[11]._y;
-		  const h_1_11 = currInnerWidth * 0.3; // not hardcode
-		  mouthPoints[1] = {_x: (x1 + x11)/2 + h_1_11 * sin, _y: (y1 + y11)/2 - h_1_11 * cos}
-		  mouthPoints[11] = {_x: (x1 + x11)/2 - h_1_11 * sin, _y: (y1 + y11)/2 + h_1_11 * cos}
-  
-		  // point 5, 7
-		  const x5 = mouthPoints[5]._x, y5 = mouthPoints[5]._y;
-		  const x7 = mouthPoints[7]._x, y7 = mouthPoints[7]._y;
-		  const h_5_7 = currInnerWidth * 0.3;
-		  mouthPoints[5] = {_x: (x5 + x7)/2 + h_5_7 * sin, _y: (y5 + y7)/2 - h_5_7 * cos}
-		  mouthPoints[7] = {_x: (x5 + x7)/2 - h_5_7 * sin, _y: (y5 + y7)/2 + h_5_7 * cos}
-  
-		  return mouthPoints;
+			// point 0, 6
+			const x0 = mouthPoints[0]._x, y0 = mouthPoints[0]._y;
+			const x6 = mouthPoints[6]._x, y6 = mouthPoints[6]._y;
+			delta_0_6 = (currOuterWidth - restingMeasures['dist_0_6']) / (2 * currOuterWidth) + 0.1;
+			mouthPoints[0] = {_x: x0 + (x6 - x0) * delta_0_6, _y: y0 + (y6 - y0) * delta_0_6}
+			mouthPoints[6] = {_x: x6 - (x6 - x0) * delta_0_6, _y: y6 - (y6 - y0) * delta_0_6}
+
+			// sin, cos
+			const sin = (y6 - y0) / currOuterWidth;
+			const cos = (x6 - x0) / currOuterWidth;
+
+			// point 13, 19
+			const x13 = mouthPoints[13]._x, y13 = mouthPoints[13]._y;
+			const x19 = mouthPoints[19]._x, y19 = mouthPoints[19]._y;
+			const h_13_19 = currInnerWidth * 0.38 - lipHeight;
+			mouthPoints[13] = {_x: (x13 + x19)/2 + h_13_19 * sin, _y: (y13 + y19)/2 - h_13_19 * cos};
+			mouthPoints[19] = {_x: (x13 + x19)/2 - h_13_19 * sin, _y: (y13 + y19)/2 + h_13_19 * cos};
+
+			// point 14, 18
+			const x14 = mouthPoints[14]._x, y14 = mouthPoints[14]._y;
+			const x18 = mouthPoints[18]._x, y18 = mouthPoints[18]._y;
+			const h_14_18 = currInnerWidth * 0.4 - lipHeight;
+			mouthPoints[14] = {_x: (x14 + x18)/2 + h_14_18 * sin, _y: (y14 + y18)/2 - h_14_18 * cos};
+			mouthPoints[18] = {_x: (x14 + x18)/2 - h_14_18 * sin, _y: (y14 + y18)/2 + h_14_18 * cos};
+
+			// point 15, 17
+			const x15 = mouthPoints[15]._x, y15 = mouthPoints[15]._y;
+			const x17 = mouthPoints[17]._x, y17 = mouthPoints[17]._y;
+			const h_15_17 = currInnerWidth * 0.38 - lipHeight;
+			mouthPoints[15] = {_x: (x15 + x17)/2 + h_15_17 * sin, _y: (y15 + y17)/2 - h_15_17 * cos};
+			mouthPoints[17] = {_x: (x15 + x17)/2 - h_15_17 * sin, _y: (y15 + y17)/2 + h_15_17 * cos};
+
+			// point 2, 10
+			const x2 = mouthPoints[2]._x, y2 = mouthPoints[2]._y;
+			const x10 = mouthPoints[10]._x, y10 = mouthPoints[10]._y;
+			const h_2_10 = currInnerWidth * 0.38;
+			mouthPoints[2] = {_x: (x2 + x10)/2 + h_2_10 * sin, _y: (y2 + y10)/2 - h_2_10 * cos}
+			mouthPoints[10] = {_x: (x2 + x10)/2 - h_2_10 * sin, _y: (y2 + y10)/2 + h_2_10 * cos}
+
+			// point 3, 9
+			const x3 = mouthPoints[3]._x, y3 = mouthPoints[3]._y;
+			const x9 = mouthPoints[9]._x, y9 = mouthPoints[9]._y;
+			const h_3_9 = currInnerWidth * 0.4;
+			mouthPoints[3] = {_x: (x3 + x9)/2 + h_3_9 * sin, _y: (y3 + y9)/2 - h_3_9 * cos};
+			mouthPoints[9] = {_x: (x3 + x9)/2 - h_3_9 * sin, _y: (y3 + y9)/2 + h_3_9 * cos};
+
+			// point 4, 8
+			const x4 = mouthPoints[4]._x, y4 = mouthPoints[4]._y;
+			const x8 = mouthPoints[8]._x, y8 = mouthPoints[8]._y;
+			const h_4_8 = currInnerWidth * 0.38;
+			mouthPoints[4] = {_x: (x4 + x8)/2 + h_4_8 * sin, _y: (y4 + y8)/2 - h_4_8 * cos}
+			mouthPoints[8] = {_x: (x4 + x8)/2 - h_4_8 * sin, _y: (y4 + y8)/2 + h_4_8 * cos}
+
+			// point 1, 11
+			const x1 = mouthPoints[1]._x, y1 = mouthPoints[1]._y;
+			const x11 = mouthPoints[11]._x, y11 = mouthPoints[11]._y;
+			const h_1_11 = currInnerWidth * 0.3; // not hardcode
+			mouthPoints[1] = {_x: (x1 + x11)/2 + h_1_11 * sin, _y: (y1 + y11)/2 - h_1_11 * cos}
+			mouthPoints[11] = {_x: (x1 + x11)/2 - h_1_11 * sin, _y: (y1 + y11)/2 + h_1_11 * cos}
+
+			// point 5, 7
+			const x5 = mouthPoints[5]._x, y5 = mouthPoints[5]._y;
+			const x7 = mouthPoints[7]._x, y7 = mouthPoints[7]._y;
+			const h_5_7 = currInnerWidth * 0.3;
+			mouthPoints[5] = {_x: (x5 + x7)/2 + h_5_7 * sin, _y: (y5 + y7)/2 - h_5_7 * cos}
+			mouthPoints[7] = {_x: (x5 + x7)/2 - h_5_7 * sin, _y: (y5 + y7)/2 + h_5_7 * cos}
+
+			return mouthPoints;
 		}
-	  }
-  
-	  function drawLines(ct, pts, color) {
+	}
+
+	function drawLines(ct, pts, color) {
 		ct.strokeStyle = color;
 		ct.lineWidth = 3;
 		ct.beginPath();
-  
+
 		for (i = 0; i < pts.length - 1; i ++) {
-		  ct.moveTo(pts[i]._x, pts[i]._y);
-		  ct.lineTo(pts[i+1]._x, pts[i+1]._y);
-		  ct.stroke();
+			ct.moveTo(pts[i]._x, pts[i]._y);
+			ct.lineTo(pts[i+1]._x, pts[i+1]._y);
+			ct.stroke();
 		}
-	  }
-  
-	  async function onPlay() {
+	}
+
+	async function onPlay() {
 		const videoEl = $('#inputVideo').get(0)
-  
+
 		if(videoEl.paused || videoEl.ended || !isFaceDetectionModelLoaded())
-		  return setTimeout(() => onPlay())
-  
+			return setTimeout(() => onPlay())
+
 		const options = getFaceDetectorOptions()
-  
+
 		const ts = Date.now()
-  
+
 		const result = await faceapi.detectSingleFace(videoEl, options).withFaceLandmarks() // positions - length 68
-  
+
 		updateTimeStats(Date.now() - ts)
-  
-		if (inRest) {
-		  document.getElementById('warningSpan').textContent = 'Please face the screen and close your mouth';
-		} else if (!isSuccessful) {
-		  document.getElementById('warningSpan').textContent = 'Please match the shape of lip on the video';
-		} else if (isSuccessful) {
-		  document.getElementById('warningSpan').textContent = 'Hold your mouth shape for 1.5 seconds';
-		  document.getElementById('evaluation').textContent = '';
-		} else {
-		  document.getElementById('warningSpan').textContent = '';
-		}
-  
+
 		if (result) {
-		  const mouthPoints = result.landmarks._positions.slice(48, 68);
-		  const updated_result = result;
-		  updated_result.landmarks._positions = result.landmarks._positions.slice(48, 68);
-		  updated_result.unshiftedLandmarks._positions = result.unshiftedLandmarks._positions.slice(48, 68);
-		  const canvas = $('#overlay').get(0)
-		  const dims = faceapi.matchDimensions(canvas, videoEl, true)
-		  const resizedResult = faceapi.resizeResults(result, dims)
-  
-		  const ctx = canvas.getContext("2d");
-  
-		  // https://github.com/justadudewhohacks/face-api.js/blob/cb52dab46ecfd7585e17fb5a671eddcb2f7cd0ee/src/classes/FaceLandmarks68.ts
-		  // point 0 ~ 16 - face
-		  // point 17 ~ 21 - left eye brow
-		  // point 22 ~ 26 - right eye brow
-		  // point 27 ~ 35 - nose
-		  // point 36 ~ 41 - left eye
-		  // point 42 ~ 47 - right eye
-		  // point 48 ~ 67 - mouth
-  
-		  // if (detectMouthClosed(mouthPoints)) {
-		  //   console.log('closed');
-		  // } else {
-		  //   console.log('not closed')
-		  // }
-		  // detect mouth closed
-		  let adjustedMouthPoints;
-		  if (inRest) {
-			if (!restStartTime) {
-			  restStartTime = Date.now();
-			}
-			if (!detectMouthClosed(mouthPoints)) {
-			  console.log('Please close your mouth');
-			  restStartTime = Date.now();
-			}
-			if (Date.now() - restStartTime > 1000) {
-			  console.log('Closed Test Passed');
-			  restingMeasures = getRestingMeasures(mouthPoints);
-			  console.log(restingMeasures);
-			  inRest = false;
-			}
-		  } else {
-			if (practiceType == 'a') {
-			  adjustedMouthPoints = adjustAMouthPoints(mouthPoints, restingMeasures);
-			} else if (practiceType == 'e') {
-			  adjustedMouthPoints = adjustEMouthPoints(mouthPoints, restingMeasures);
-			} else if (practiceType == 'i') {
-			  adjustedMouthPoints = adjustIMouthPoints(mouthPoints, restingMeasures);
-			} else if (practiceType === 'o') {
-			  adjustedMouthPoints = adjustOMouthPoints(mouthPoints, restingMeasures);
-			}
-			
-			if (adjustedMouthPoints == null) { // successful
-			  console.log(adjustedMouthPoints);
-			  if (isSuccessful) {
-				if (Date.now() - successStartTime > 1500) {
-				  console.log('SUCCESS!!!!')
-				  inRest = true;
-				  isSuccessful = false;
-				  document.getElementById('evaluation').textContent='GOOD!';
+			const mouthPoints = result.landmarks._positions.slice(48, 68);
+			const updated_result = result;
+			updated_result.landmarks._positions = result.landmarks._positions.slice(48, 68);
+			updated_result.unshiftedLandmarks._positions = result.unshiftedLandmarks._positions.slice(48, 68);
+			const canvas = $('#overlay').get(0)
+			const dims = faceapi.matchDimensions(canvas, videoEl, true)
+			const resizedResult = faceapi.resizeResults(result, dims)
+
+			const ctx = canvas.getContext("2d");
+
+			// https://github.com/justadudewhohacks/face-api.js/blob/cb52dab46ecfd7585e17fb5a671eddcb2f7cd0ee/src/classes/FaceLandmarks68.ts
+			// point 0 ~ 16 - face
+			// point 17 ~ 21 - left eye brow
+			// point 22 ~ 26 - right eye brow
+			// point 27 ~ 35 - nose
+			// point 36 ~ 41 - left eye
+			// point 42 ~ 47 - right eye
+			// point 48 ~ 67 - mouth
+
+			let adjustedMouthPoints;
+			if (hasSucceeded) {
+				if (Date.now() - successEndTime > 3000) {
+					inRest = true;
+					document.getElementById('successDiv').style.display = 'none';
+					hasSucceeded = false;
+					restStartTime = Date.now();
+					document.getElementById('adviceDiv').textContent = '';
 				}
-			  } else { // first time succeeding
-				successStartTime = Date.now();
-				isSuccessful = true;
-			  }
+			} else if (inRest) {
+				if (!restStartTime) {
+					restStartTime = Date.now();
+				}
+				if (!detectMouthClosed(mouthPoints)) {
+					console.log('Please close your mouth');
+					restStartTime = Date.now();
+					document.getElementById('closeInstructionDiv').style.display = "block";
+				}
+				if (Date.now() - restStartTime > 1000) {
+					console.log('Closed Test Passed');
+					updateMission();
+					restingMeasures = getRestingMeasures(mouthPoints);
+					inRest = false;
+					document.getElementById('closeInstructionDiv').style.display = "none";
+				}
+				document.getElementById('adviceDiv').textContent = '';
 			} else {
-			  // ctx.fillStyle = 'rgba(0, 0, 255, 1.0)';
-			  // for (let idx = 0; idx < 20; idx++) {
-			  //   // console.log(mouth_points[idx])
-			  //   ctx.fillRect(adjustedMouthPoints[idx]._x, adjustedMouthPoints[idx]._y, 3, 3);
-			  // }
-			  // ctx.fillStyle = 'rgba(255, 255, 255, 1.0)';
-			  // ctx.fillRect(adjustedMouthPoints[2]._x, adjustedMouthPoints[2]._y, 3, 3);
-			  // ctx.fillRect(adjustedMouthPoints[3]._x, adjustedMouthPoints[3]._y, 3, 3);
-			  // ctx.fillRect(adjustedMouthPoints[4]._x, adjustedMouthPoints[4]._y, 3, 3);
-			  // ctx.fillRect(adjustedMouthPoints[8]._x, adjustedMouthPoints[8]._y, 3, 3);
-  
-			  drawLines(ctx, adjustedMouthPoints.slice(0,7), "#0000FF");
-			  drawLines(ctx, adjustedMouthPoints.slice(7,12), "#0000FF");
-			  drawLines(ctx, adjustedMouthPoints.slice(13,16), "#0000FF");
-			  drawLines(ctx, adjustedMouthPoints.slice(17,20), "#0000FF");
-			  isSuccessful = false;
-			  successStartTime = Date.now();
+				if (missionType == 'ae') {
+					adjustedMouthPoints = adjustAMouthPoints(mouthPoints, restingMeasures);
+				} else if (missionType == 'shch') {
+					adjustedMouthPoints = adjustEMouthPoints(mouthPoints, restingMeasures);
+				} else if (missionType == 'i') {
+					adjustedMouthPoints = adjustIMouthPoints(mouthPoints, restingMeasures);
+				} else if (missionType === 'oo') {
+					adjustedMouthPoints = adjustOMouthPoints(mouthPoints, restingMeasures);
+				}
+			
+				if (adjustedMouthPoints == null) { // successful
+					if (isSuccessful) {
+						if (Date.now() - successStartTime > 1500) {
+							console.log('SUCCESS!!!!')
+							isSuccessful = false;
+							document.getElementById(currMissionDiv).style.display = 'none';
+							document.getElementById('successDiv').style.display = 'block';
+							successEndTime = Date.now();
+							hasSucceeded = true;
+						} else {
+							document.getElementById('adviceDiv').textContent = 'Keep it up for 1.5 seconds!';
+						}
+					} else { // first time succeeding
+						successStartTime = Date.now();
+						isSuccessful = true;
+					}
+				} else {
+					document.getElementById('adviceDiv').textContent = 'Try to Match Lip Guidance!';
+					// ctx.fillStyle = 'rgba(0, 0, 255, 1.0)';
+					// for (let idx = 0; idx < 20; idx++) {
+					//   // console.log(mouth_points[idx])
+					//   ctx.fillRect(adjustedMouthPoints[idx]._x, adjustedMouthPoints[idx]._y, 3, 3);
+					// }
+					// ctx.fillStyle = 'rgba(255, 255, 255, 1.0)';
+					// ctx.fillRect(adjustedMouthPoints[2]._x, adjustedMouthPoints[2]._y, 3, 3);
+					// ctx.fillRect(adjustedMouthPoints[3]._x, adjustedMouthPoints[3]._y, 3, 3);
+					// ctx.fillRect(adjustedMouthPoints[4]._x, adjustedMouthPoints[4]._y, 3, 3);
+					// ctx.fillRect(adjustedMouthPoints[8]._x, adjustedMouthPoints[8]._y, 3, 3);
+
+					drawLines(ctx, adjustedMouthPoints.slice(0,7), "#0000FF");
+					drawLines(ctx, adjustedMouthPoints.slice(7,12), "#0000FF");
+					drawLines(ctx, adjustedMouthPoints.slice(13,16), "#0000FF");
+					drawLines(ctx, adjustedMouthPoints.slice(17,20), "#0000FF");
+					isSuccessful = false;
+					successStartTime = Date.now();
+				}
 			}
-		  }
-		  // ctx.fillStyle = 'rgba(255, 0, 0, 1.0)';
-		  // for (let idx = 0; idx < 20; idx++) {
-		  //   ctx.fillRect(mouthPoints[idx]._x, mouthPoints[idx]._y, 3, 3);
-		  // }
-		  // drawLines(ctx, mouth_points, "#00FF00");
+			// ctx.fillStyle = 'rgba(255, 0, 0, 1.0)';
+			// for (let idx = 0; idx < 20; idx++) {
+			//   ctx.fillRect(mouthPoints[idx]._x, mouthPoints[idx]._y, 3, 3);
+			// }
+			// drawLines(ctx, mouth_points, "#00FF00");
 		}
 		setTimeout(() => onPlay())
-	  }
-  
-	  async function run() {
+	}
+
+	async function run() {
 		// load face detection and face landmark models
 		await changeFaceDetector(TINY_FACE_DETECTOR)
 		await faceapi.loadFaceLandmarkModel('/')
 		changeInputSize(224)
-  
+
 		// try to access users webcam and stream the images
 		// to the video element
 		const stream = await navigator.mediaDevices.getUserMedia({ video: {} })
 		const videoEl = $('#inputVideo').get(0)
 		videoEl.srcObject = stream
-	  }
-  
-	  function updateResults() {}
-  
-	  $(document).ready(function() {
-		renderNavBar('#navbar', 'webcam_face_landmark_detection')
+		}
+
+		function updateResults() {}
+
+		$(document).ready(function() {
+		// renderNavBar('#navbar', 'webcam_face_landmark_detection')
 		initFaceDetectionControls()
 		run()
-	  })
-	</script>
-  </body>
+	})
+</script>
 {% endblock %}
