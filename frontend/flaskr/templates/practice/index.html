@@ -91,11 +91,13 @@
         'clown': {
             'hEye': 190,
             'wImg': 400,
+            'wMask': 170,
             'filename': 'images/mask_clown.png'
         },
         'frankenstein': {
             'hEye': 190,
             'wImg': 400,
+            'wMask': 170,
             'filename': 'images/mask_frankenstein.png'
         }
     };
@@ -501,13 +503,14 @@
 
     function getMaskPosition(canvas, result) {
         // get mask position
+        const scale = length(result.landmarks._positions[0], result.landmarks._positions[15]) / maskInfo[maskType].wMask;
         const h_eye = maskInfo[maskType].hEye;
         const w_img = maskInfo[maskType].wImg;
         const canvas_offset_top = offset(canvas).top, canvas_offset_left = offset(canvas).left;
         const x_m = (result.landmarks._positions[27]._x + result.landmarks._positions[31]._x) / 2;
         const y_m = (result.landmarks._positions[40]._y + result.landmarks._positions[43]._y) / 2;
-        const left_offset = canvas_offset_left + (x_m - w_img / 2);
-        const top_offset = canvas_offset_top + (y_m - h_eye);
+        const left_offset = canvas_offset_left + (x_m - w_img * scale / 2);
+        const top_offset = canvas_offset_top + (y_m - h_eye * scale);
 
         const x1 = result.landmarks._positions[36]._x, y1 = result.landmarks._positions[36]._y;
         const x2 = result.landmarks._positions[45]._x, y2 = result.landmarks._positions[45]._y;
@@ -641,12 +644,14 @@
                     img.style.display = 'none';
                 } else {
                     const maskPosition = getMaskPosition(canvas, result);
+                    const scale = length(result.landmarks._positions[0], result.landmarks._positions[15]) / maskInfo[maskType].wMask;
                     img.style.cssText = `
                         display: block;
                         position: absolute;
                         z-index: 100;
                         left: ${maskPosition.leftOffset}px;
                         top: ${maskPosition.topOffset}px;
+                        width: ${maskInfo[maskType].wImg * scale}px;
                         transform: rotate(${maskPosition.angle}deg);
                     `
                     }
