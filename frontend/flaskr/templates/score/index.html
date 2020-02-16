@@ -12,10 +12,15 @@
 
 {% block content %}
 
-	<input type="button" id="mixBut" value="Start" />
+  <div id="conversationContainer">
+    <input type="button" id="pracBut" value="Practice" />
+    <input type="button" id="dyspraxiaBut" value="Tell me about dyspraxia" />
+    <input type="button" id="dysfluencyBut" value="Tell me about disfluency" />
+    <p id="definitionText"></p>
+  </div>
 
-  <div class="ui center aligned basic segment container">
-    <h2 class="ui block basic header">Houndify JavaScript SDK Demo</h2>
+  <div id="voiceInputContainer">
+    <div class="ui center aligned basic segment container">
     <form id="form" class="ui form" action="javascript:void(0);">
       <div class="ui action big labeled fluid input field">
         <div class="ui icon basic label button" onclick="onMicrophoneClick()">
@@ -24,15 +29,15 @@
         <input
           id="query"
           type="text"
-          placeholder="Click on a microphone icon or type in your query"
+          placeholder=""
         />
-        <!-- <button
+        <button
           id="textSearchButton"
           class="ui icon button"
           onclick="initTextRequest()"
         >
           <i class="search big icon"></i>
-        </button> -->
+        </button>
       </div>
 
       <!-- <div class="ui field">
@@ -42,7 +47,7 @@
         <input type="file" id="file" name="file" onchange="onFileUpload()" />
       </div> -->
 
-      <div id="status" class="ui info message">
+      <div id="status" class="ui info message" style="visibility:hidden;">
         Click on microphone icon or type in the text query.
       </div>
 
@@ -56,10 +61,8 @@
       </div>
     </form>
   </div>
-  <input type="button" id="pracBut" value="Practice" />
-  <input type="button" id="dyspraxiaBut" value="Tell me about dyspraxia" />
-  <input type="button" id="dysfluencyBut" value="Tell me about disfluency" />
-  <p id="definitionText"></p>
+  </div>
+
   <script>
     function textToSpeech(phrase) {
       // list of languages is probably not loaded, wait for it

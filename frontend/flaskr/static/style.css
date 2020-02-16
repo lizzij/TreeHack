@@ -19,11 +19,6 @@ h1 {
   margin: 1rem 0;
 }
 
-#conversationContainer {
-  padding-left: 10rem;
-  padding-right: 10rem;
-}
-
 .speech-bubble-right {
   background: #efefef;
   -webkit-border-radius: 4px;
@@ -89,5 +84,7 @@ h1 {
 }
 
 #voiceInputContainer {
+  bottom: 10px;
   text-align: center;
+  position: absolute;
 }
