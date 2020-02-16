@@ -1,6 +1,8 @@
 {% extends 'base.html' %}
 
 {% block header %}
+<h1>{% block title %}{% endblock %}</h1>
+<h3>Practice</h3>
 <script src="{{ url_for('static', filename='dist/face-api.js') }}"></script>
 <script src="{{ url_for('static', filename='js/commons.js') }}"></script>
 <script src="{{ url_for('static', filename='js/faceDetectionControls.js') }}"></script>
@@ -8,62 +10,73 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.css">
 <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
-<h3>{% block title %}Practice{% endblock %}</h3>
+<script src="{{ url_for('static', filename='js_bootstrap/bootstrap.js') }}"></script>
+<!-- <link rel="stylesheet" href="styles.css"> -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css_bootstrap/bootstrap.css') }}">
+
 {% endblock %}
 
 {% block content %}
-<div id="navbar" style="display: none;"></div>
-<div class="instructionContainer">
-    <div id="closeInstructionDiv">
-        Please Look at the Screen and Close Your Mouth
+
+<img src="{{ url_for('static', filename='images/mask_clown.png') }}" id='maskImg_clown' style='display: none;'/>
+<img src="{{ url_for('static', filename='images/mask_frankenstein.png') }}" id='maskImg_frankenstein', style='display: none;'/>
+<div class="row">
+    <div class="col-md-1">
     </div>
-    <div class="missionDiv" id="missionAEDiv" style="display: none;">
-        <div class="mouthInstructionDiv">
-            Make 'A/E' Sound
+    <div class="col-md-7">
+        <div class="progress" id="loader">
+            <div class="indeterminate"></div>
         </div>
-        <div>
-            <img class="mouthImg" src="{{ url_for('static', filename='images/mouth_ae.png') }}" />
+        <div style="position: relative" class="margin">
+            <video onloadedmetadata="onPlay(this)" id="inputVideo" autoplay muted playsinline></video>
+            <canvas id="overlay" />
+        </div>
+        
+    </div>
+    <div class="col-md-3">
+        <div id="closeInstructionDiv">
+            Please Look at the Screen and Close Your Mouth
+        </div>
+        <div class="missionDiv" id="missionAEDiv" style="display: none;">
+            <div class="mouthInstructionDiv">
+                Make 'A/E' Sound
+            </div>
+            <div>
+                <img class="mouthImg" src="{{ url_for('static', filename='images/mouth_ae.png') }}" />
+            </div>
+        </div>
+        <div class='missionDiv' id="missionOoDiv" style="display: none;">
+            <div class="mouthInstructionDiv">
+                Make 'O' Sound
+            </div>
+            <div>
+                <img class="mouthImg" src="{{ url_for('static', filename='images/mouth_oo.png') }}" />
+            </div>
+        </div>
+        <div class='missionDiv' id="missionShChDiv" style="display: none;">
+            <div class="mouthInstructionDiv">
+                Make 'Sh/Ch' Sound
+            </div>
+            <div>
+                <img class="mouthImg" src="{{ url_for('static', filename='images/mouth_sh_ch.png') }}" />
+            </div>
+        </div>
+        <div class='missionDiv' id="missionIDiv" style="display: none;">
+            <div class="mouthInstructionDiv">
+                Make 'EE' Sound
+            </div>
+            <div>
+                <img class="mouthImg" src="{{ url_for('static', filename='images/mouth_i.png') }}" />
+            </div>
+        </div>
+        <div class="successDiv" id='successDiv' style="display: none;">
+            Success! You Rock!
         </div>
     </div>
-    <div class='missionDiv' id="missionOoDiv" style="display: none;">
-        <div class="mouthInstructionDiv">
-            Make 'O' Sound
-        </div>
-        <div>
-            <img class="mouthImg" src="{{ url_for('static', filename='images/mouth_oo.png') }}" />
-        </div>
-    </div>
-    <div class='missionDiv' id="missionShChDiv" style="display: none;">
-        <div class="mouthInstructionDiv">
-            Make 'Sh/Ch' Sound
-        </div>
-        <div>
-            <img class="mouthImg" src="{{ url_for('static', filename='images/mouth_sh_ch.png') }}" />
-        </div>
-    </div>
-    <div class='missionDiv' id="missionIDiv" style="display: none;">
-        <div class="mouthInstructionDiv">
-            Make 'EE' Sound
-        </div>
-        <div>
-            <img class="mouthImg" src="{{ url_for('static', filename='images/mouth_i.png') }}" />
-        </div>
-    </div>
-    <div class="successDiv" id='successDiv' style="display: none;">
-        Success! You Rock!
-    </div>
-</div>
-<div class="center-content page-container">
-    <div class="progress" id="loader">
-        <div class="indeterminate"></div>
-    </div>
-    <div style="position: relative" class="margin">
-        <video onloadedmetadata="onPlay(this)" id="inputVideo" autoplay muted playsinline></video>
-        <canvas id="overlay" />
+    <div class="col-md-1">
     </div>
 </div>
 <div id="adviceDiv">
-    
 </div>
   
 <script>
@@ -74,6 +87,20 @@
     let isSuccessful = false;
     let hasSucceeded = false;
     const missionTypeArr = ['ae', 'i', 'oo', 'shch'];
+    const maskArr = ['clown', 'frankenstein'];
+    const maskInfo = {
+        'clown': {
+            'hEye': 190,
+            'wImg': 400,
+            'filename': 'images/mask_clown.png'
+        },
+        'frankenstein': {
+            'hEye': 190,
+            'wImg': 400,
+            'filename': 'images/mask_frankenstein.png'
+        }
+    };
+    let maskType;
     let missionType;
     let currMissionDiv;
 
@@ -113,7 +140,7 @@
     function detectMouthClosed(mouthPoints) {
         const currInnerWidth = length(mouthPoints[12], mouthPoints[16]);
         const currInnerHeight = length(mouthPoints[14], mouthPoints[18]);
-        if (currInnerHeight / currInnerWidth < 0.095) {
+        if (currInnerHeight / currInnerWidth < 1) {
             return true;
         } else {
             return false;
@@ -466,6 +493,34 @@
         }
     }
 
+    function offset(el) {
+        const rect = el.getBoundingClientRect(),
+        scrollLeft = window.pageXOffset || document.documentElement.scrollLeft,
+        scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        return { top: rect.top + scrollTop, left: rect.left + scrollLeft }
+    }
+
+    function getMaskPosition(canvas, result) {
+        // get mask position
+        const h_eye = maskInfo[maskType].hEye;
+        const w_img = maskInfo[maskType].wImg;
+        const canvas_offset_top = offset(canvas).top, canvas_offset_left = offset(canvas).left;
+        const x_m = (result.landmarks._positions[27]._x + result.landmarks._positions[31]._x) / 2;
+        const y_m = (result.landmarks._positions[40]._y + result.landmarks._positions[43]._y) / 2;
+        const left_offset = canvas_offset_left + (x_m - w_img / 2);
+        const top_offset = canvas_offset_top + (y_m - h_eye);
+
+        const x1 = result.landmarks._positions[36]._x, y1 = result.landmarks._positions[36]._y;
+        const x2 = result.landmarks._positions[45]._x, y2 = result.landmarks._positions[45]._y;
+        let angle;
+        if (x2 - x1 == 0) {
+          angle = 0;
+        } else {
+          angle = Math.atan((y2 - y1) / (x2 - x1)) * (180 / Math.PI);
+        }
+        return {topOffset: top_offset, leftOffset: left_offset, angle: angle};
+    }
+
     function drawLines(ct, pts, color) {
         ct.strokeStyle = color;
         ct.lineWidth = 3;
@@ -545,12 +600,12 @@
         const result = await faceapi.detectSingleFace(videoEl, options).withFaceLandmarks() // positions - length 68
 
         updateTimeStats(Date.now() - ts)
-
+        
         if (result) {
             const mouthPoints = result.landmarks._positions.slice(48, 68);
-            const updated_result = result;
-            updated_result.landmarks._positions = result.landmarks._positions.slice(48, 68);
-            updated_result.unshiftedLandmarks._positions = result.unshiftedLandmarks._positions.slice(48, 68);
+            // const updated_result = result;
+            // updated_result.landmarks._positions = result.landmarks._positions.slice(48, 68);
+            // updated_result.unshiftedLandmarks._positions = result.unshiftedLandmarks._positions.slice(48, 68);
             const canvas = $('#overlay').get(0)
             const dims = faceapi.matchDimensions(canvas, videoEl, true)
             const resizedResult = faceapi.resizeResults(result, dims)
@@ -568,13 +623,37 @@
 
             let adjustedMouthPoints;
             if (hasSucceeded) {
-                if (Date.now() - successEndTime > 3000) {
+                let img;
+                if (maskType == 'clown') {
+                    img = document.getElementById('maskImg_clown');
+                } else if (maskType == 'frankenstein') {
+                    img = document.getElementById('maskImg_frankenstein')
+                }
+
+                if (Date.now() - successEndTime > 3000) { // time till next practice round
                     inRest = true;
                     document.getElementById('successDiv').style.display = 'none';
                     hasSucceeded = false;
                     restStartTime = Date.now();
-                    document.getElementById('adviceDiv').textContent = '';
-                }
+                    img.style.display = 'none';
+                } else {
+                    const maskPosition = getMaskPosition(canvas, result);
+                    img.style.cssText = `
+                        display: block;
+                        position: absolute;
+                        z-index: 100;
+                        left: ${maskPosition.leftOffset}px;
+                        top: ${maskPosition.topOffset}px;
+                        transform: rotate(${maskPosition.angle}deg);
+                    `
+                    }
+                    // img.src = "{{ url_for('static', filename='images/mask_clown.png') }}";
+                    // if (maskType == 'clown') {
+                    //     img.src = "{{ url_for('static', filename='images/mask_clown.png') }}";
+                    // } else if (maskType == 'frankenstein') {
+                    //     img.src = "{{ url_for('static', filename='images/mask_frankenstein.png') }}";
+                    // }
+                document.getElementById('adviceDiv').textContent = '';
             } else if (inRest) {
                 if (!restStartTime) {
                     restStartTime = Date.now();
@@ -612,6 +691,7 @@
                             document.getElementById('successDiv').style.display = 'block';
                             successEndTime = Date.now();
                             hasSucceeded = true;
+                            maskType = maskArr[Math.floor(Math.random() * maskArr.length)]
                         } else {
                             document.getElementById('adviceDiv').textContent = 'Keep it up for 1.5 seconds!';
                         }
