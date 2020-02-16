@@ -8,14 +8,13 @@
   href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.4/semantic.min.css"
 />
 
-<h1>{% block title %}Say "freezy trees made these trees' cheese freeze"{% endblock %}</h1>
+<h1>{% block title %}{% endblock %}</h1>
 {% endblock %}
 
 {% block content %}
-	<input type="button" id="mixBut" value="Start" />
-	
+
     <div class="ui center aligned basic segment container">
-      <h2 class="ui block basic header">Houndify JavaScript SDK Demo</h2>
+      <h2 class="ui block basic header">Start my session</h2>
       <form id="form" class="ui form" action="javascript:void(0);">
         <div class="ui action big labeled fluid input field">
           <div class="ui icon basic label button" onclick="onMicrophoneClick()">
@@ -26,21 +25,21 @@
             type="text"
             placeholder="Click on a microphone icon or type in your query"
           />
-          <!-- <button
+          <button
             id="textSearchButton"
             class="ui icon button"
             onclick="initTextRequest()"
           >
             <i class="search big icon"></i>
-          </button> -->
+          </button>
         </div>
 
-        <!-- <div class="ui field">
+        <div class="ui field">
           <label class="ui label" for="file"
             >Or upload a recorded voice query from a file</label
           >
           <input type="file" id="file" name="file" onchange="onFileUpload()" />
-        </div> -->
+        </div>
 
         <div id="status" class="ui info message">
           Click on microphone icon or type in the text query.
@@ -56,73 +55,7 @@
         </div>
       </form>
     </div>
-	<!-- <input type="image" src="{{ url_for('static', filename="recorder.png") }}" id="mixBut" value="Start" /> -->
-	<script src="https://unpkg.com/synth-js/dst/synth.min.js"></script>
-	<script>
-		var mixBut = document.getElementById("mixBut");
 
-		mixBut.addEventListener("click", Start);
-
-		function Start() {
-			console.log("Started");
-			mixBut.removeEventListener("click", Start);
-			mixBut.addEventListener("click", Stop);
-			mixBut.value = "Stop";
-			navigator.mediaDevices.getUserMedia({
-				audio: true,
-				video: false
-			}).then(handleSuccess);
-		}
-
-		function Stop() {
-			console.log("Stopped");
-			mixBut.removeEventListener("click", Stop);
-			mixBut.addEventListener("click", ToEval);
-			mixBut.value = "Evaluate";
-			function ToEval() {
-				console.log("Evaluate");
-				window.location.href='{{ url_for('score.display_score') }}';
-			}
-		}
-
-		var handleSuccess = function(stream) {
-			var context = new AudioContext();
-			var source = context.createMediaStreamSource(stream);
-			var processor = context.createScriptProcessor(1024, 1, 1);
-			var data = [];
-
-			source.connect(processor);
-			processor.connect(context.destination);
-
-			processor.onaudioprocess = function(e) {
-				data.push.apply(data, e.inputBuffer.getChannelData(0));
-				// cut off after 5 seconds
-				if (mixBut.value === "Evaluate") {
-					context.close();
-					var track = stream.getAudioTracks()[0];
-					track.stop();
-					// Convert this to WAV
-					var wav = new synth.WAV(1, context.sampleRate, 16, true, data);
-					var blob = wav.toBlob();
-					// TODO
-					// let request = new XMLHttpRequest();
-					// request.open("POST", 'some_url/', true);
-					// request.send(data)
-					// do something with blob
-					var src = URL.createObjectURL(blob);
-					var audio = new Audio();
-					audio.controls = true;
-					document.body.appendChild(audio);
-					// play back audio
-					audio.addEventListener('canplaythrough', function() {
-						audio.play();
-					});
-					audio.src = src;
-				}
-			};
-		};
-	</script>
-  
   <script>
     // Start of Houndify code
     //HTML ELEMENTS FOR DISPLAYING RESPONSE AND INFO JSON's
@@ -304,15 +237,32 @@
       statusElt.innerText = "Received response.";
       responseElt.parentNode.hidden = false;
       responseElt.value = response.stringify(undefined, 2);
-    
+
       let action = (response.AllResults[0].Result || {}).action;
       if (action === undefined) {
         // errored
       } else if (action == "greeting") {
-        
-				window.location.href='{{ url_for('score.display_score') }}';
 
-      }
+				// render hello
+				// window.location.href='{{ url_for('score.display_score') }}';
+				console.log(action)
+
+      } else if (action == "start_session") {
+
+				// expected vs actual test
+				console.log(action)
+
+			} else if (action == "start_exercises") {
+
+				// start face movement exercises
+				console.log(action)
+
+			} else if (action == "restart_session") {
+
+				console.log(action)
+				window.location.href='{{ url_for('record.index') }}';
+			}
+
       //infoElt.parentNode.hidden = false;
       //infoElt.value = JSON.stringify(info, undefined, 2);
     }
