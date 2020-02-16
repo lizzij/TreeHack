@@ -125,5 +125,7 @@ h1 {
 }
 
 #resultContainer {
-  
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

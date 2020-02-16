@@ -68,7 +68,7 @@ def display_score():
             "correct": "#156b2c",
             "filler": "#9e5c00"
         }
-        
+
         col["true_word"] = " ".join(data["true_words"])
         col["pred_word"] = " ".join(data["pred_words"])
         if data["is_match"]:
