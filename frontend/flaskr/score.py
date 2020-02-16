@@ -62,11 +62,11 @@ def display_score():
             "pred_issue": "",
         }
         colors = {
-            "omission": "#5c5c5c",
-            "stutter": "#821129",
-            "dyspraxia": "#791a87",
-            "correct": "#156b2c",
-            "filler": "#9e5c00"
+            "omission": "#E2E2E2",
+            "stutter": "#FFC8D9",
+            "dyspraxia": "#D6BBB6",
+            "correct": "#B3DBCE",
+            "filler": "##FFEFE0"
         }
 
         col["true_word"] = " ".join(data["true_words"])

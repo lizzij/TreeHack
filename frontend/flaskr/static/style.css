@@ -113,15 +113,19 @@ h1 {
 }
 
 #pracBut {
-  background:#FCC4B7;
+  background:#92D0E9;
 }
 
 #dyspraxiaBut {
-  background:#FEDED3;
+  background:#A4DEF1;
 }
 
 #dysfluencyBut {
-  background:#FDEDDE;
+  background:#BAE7F3;
+}
+
+#choicesContainer {
+  padding-top: 10rem;
 }
 
 #resultContainer {
