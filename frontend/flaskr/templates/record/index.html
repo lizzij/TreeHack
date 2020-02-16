@@ -12,50 +12,59 @@
 {% endblock %}
 
 {% block content %}
+  <div id="conversationContainer">
+    <div class="speech-bubble-left"><p>Hello!</p></div>
+    <div class="speech-bubble-right" id="firstResponse" style="visibility:hidden;"><p></p></div>
+    <div class="speech-bubble-left" id="secondResponse" style="visibility:hidden;"><p></p></div>
+    <input type="button" id="mixBut" value="Start" style="visibility:hidden;" />
+  </div>
+	<div id="voiceInputContainer">
+		<div class="ui center aligned basic segment container" id="voiceInput">
 
-    <div class="ui center aligned basic segment container">
-      <h2 class="ui block basic header">Start my session</h2>
-      <form id="form" class="ui form" action="javascript:void(0);">
-        <div class="ui action big labeled fluid input field">
-          <div class="ui icon basic label button" onclick="onMicrophoneClick()">
-            <i id="voiceIcon" class="unmute big icon"></i>
-          </div>
-          <input
-            id="query"
-            type="text"
-            placeholder="Click on a microphone icon or type in your query"
-          />
-          <button
-            id="textSearchButton"
-            class="ui icon button"
-            onclick="initTextRequest()"
-          >
-            <i class="search big icon"></i>
-          </button>
-        </div>
+	      <form id="form" class="ui form" action="javascript:void(0);">
 
-        <div class="ui field">
-          <label class="ui label" for="file"
-            >Or upload a recorded voice query from a file</label
-          >
-          <input type="file" id="file" name="file" onchange="onFileUpload()" />
-        </div>
+	        <div class="ui action big labeled fluid input field">
+	          <div class="ui icon basic label button" onclick="onMicrophoneClick()">
+	            <i id="voiceIcon" class="unmute big icon"></i>
+	          </div>
+	          <input
+	            id="query"
+	            type="text"
+	            placeholder="Say something..."
+	          />
+	          <button
+	            id="textSearchButton"
+	            class="ui icon button"
+	            onclick="initTextRequest()"
+	          >
+	            <i class="search big icon"></i>
+	          </button>
+	        </div>
 
-        <div id="status" class="ui info message">
-          Click on microphone icon or type in the text query.
-        </div>
+	        <!-- <div class="ui field">
+	          <label class="ui label" for="file"
+	            >Or upload a recorded voice query from a file</label
+	          >
+	          <input type="file" id="file" name="file" onchange="onFileUpload()" />
+	        </div> -->
 
-        <div class="ui field" hidden>
-          <label>Response object</label>
-          <textarea id="responseJSON"></textarea>
-        </div>
-        <div class="ui field" hidden>
-          <label>Search info object</label>
-          <textarea id="infoJSON"></textarea>
-        </div>
-      </form>
-    </div>
+	        <div id="status" class="ui info message" style="visibility:hidden;">
+	          Click on microphone icon or type in the text query.
+	        </div>
 
+	        <div class="ui field" hidden>
+	          <label>Response object</label>
+	          <textarea id="responseJSON"></textarea>
+	        </div>
+	        <div class="ui field" hidden>
+	          <label>Search info object</label>
+	          <textarea id="infoJSON"></textarea>
+	        </div>
+	      </form>
+	    </div>
+	</div>
+
+  <script src="https://unpkg.com/synth-js/dst/synth.min.js"></script>
   <script>
     // Start of Houndify code
     //HTML ELEMENTS FOR DISPLAYING RESPONSE AND INFO JSON's
@@ -224,6 +233,80 @@
       reader.readAsArrayBuffer(file);
     }
 
+		function chooseText() {
+			var arr = ["cheese", "the rain in spain falls mainly on the plain",
+                "placeholderB", "placeholderC"];
+			return arr[Math.floor(Math.random() * arr.length)];
+		}
+
+    function startSession() {
+  		var mixBut = document.getElementById("mixBut");
+
+      mixBut.style.visibility = "visible";
+  		mixBut.addEventListener("click", Start);
+
+  		function Start() {
+  			console.log("Started");
+  			mixBut.removeEventListener("click", Start);
+  			mixBut.addEventListener("click", Stop);
+  			mixBut.value = "Stop";
+  			navigator.mediaDevices.getUserMedia({
+  				audio: true,
+  				video: false
+  			}).then(handleSuccess);
+  		}
+
+  		function Stop() {
+  			console.log("Stopped");
+  			mixBut.removeEventListener("click", Stop);
+  			mixBut.addEventListener("click", ToEval);
+  			mixBut.value = "Evaluate";
+  			function ToEval() {
+  				console.log("Evaluate");
+  				window.location.href='{{ url_for('score.display_score') }}';
+  			}
+  		}
+
+  		var handleSuccess = function(stream) {
+  			var context = new AudioContext();
+  			var source = context.createMediaStreamSource(stream);
+  			var processor = context.createScriptProcessor(1024, 1, 1);
+  			var data = [];
+
+  			source.connect(processor);
+  			processor.connect(context.destination);
+
+  			processor.onaudioprocess = function(e) {
+  				data.push.apply(data, e.inputBuffer.getChannelData(0));
+  				// cut off after 5 seconds
+  				if (mixBut.value === "Evaluate") {
+  					context.close();
+  					var track = stream.getAudioTracks()[0];
+  					track.stop();
+  					// Convert this to WAV
+  					var wav = new synth.WAV(1, context.sampleRate, 16, true, data);
+  					var blob = wav.toBlob();
+
+  					// TODO
+  					// let request = new XMLHttpRequest();
+  					// request.open("POST", 'some_url/', true);
+  					// request.send(data)
+  					// do something with blob
+
+  					var src = URL.createObjectURL(blob);
+  					var audio = new Audio();
+  					audio.controls = true;
+  					document.body.appendChild(audio);
+  					// play back audio
+  					audio.addEventListener('canplaythrough', function() {
+  						audio.play();
+  					});
+  					audio.src = src;
+  				}
+  			};
+  		};
+    }
+
     //Fires after server responds with Response JSON
     //Info object contains useful information about the completed request
     //See https://houndify.com/reference/HoundServer
@@ -245,21 +328,43 @@
 
 				// render hello
 				// window.location.href='{{ url_for('score.display_score') }}';
-				console.log(action)
+				console.log(action);
+				var firstResponse = document.getElementById("firstResponse");
+				firstResponse.style.visibility='visible'
+				var transcript = response.Disambiguation.ChoiceData[0].FormattedTranscription;
+				console.log(transcript)
+				firstResponse.innerText = transcript;
+
+        var secondResponse = document.getElementById("secondResponse");
+				secondResponse.style.visibility='hidden';
 
       } else if (action == "start_session") {
 
 				// expected vs actual test
-				console.log(action)
+				console.log(action);
+				var firstResponse = document.getElementById("firstResponse");
+				firstResponse.style.visibility='visible'
+				var transcript = response.Disambiguation.ChoiceData[0].FormattedTranscription;
+				console.log(transcript)
+				firstResponse.innerText = transcript;
+
+				var secondResponse = document.getElementById("secondResponse");
+				secondResponse.style.visibility='visible';
+				var actualText = chooseText();
+				secondResponse.innerText = 'Say: ' + actualText;
+
+        // TODO send the actualText and encoded wva, get back score
+        startSession();
 
 			} else if (action == "start_exercises") {
 
 				// start face movement exercises
-				console.log(action)
+				console.log(action);
+        window.location.href='{{ url_for('practice.start_practice') }}';
 
 			} else if (action == "restart_session") {
 
-				console.log(action)
+				console.log(action);
 				window.location.href='{{ url_for('record.index') }}';
 			}
 

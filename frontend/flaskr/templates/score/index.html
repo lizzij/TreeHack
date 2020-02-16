@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block header %}
-<h1>{% block title %}Analysis{% endblock %}</h1>
+<h1>{% block title %}{% endblock %}</h1>
 <script src="https://unpkg.com/houndify@3.0.3/dist/houndify.js"></script>
 <script src="https://unpkg.com/jquery@3.3.1/dist/jquery.js"></script>
 <!-- This is the houndify css-->
@@ -373,7 +373,7 @@
       statusElt.innerText = "Received response.";
       responseElt.parentNode.hidden = false;
       responseElt.value = JSON.stringify(response, undefined, 2);
-    
+
       let commandType = response.AllResults[0].CommandKind;
       console.log(commandType);
       if (commandType == "InformationCommand" ||
@@ -384,7 +384,7 @@
         definitionText.innerText = writtenResponse;
         textToSpeech(spokenResponse);
       }
-        
+
 			// window.location.href='{{ url_for('score.display_score') }}';
 
       //infoElt.parentNode.hidden = false;

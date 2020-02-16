@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import os
 
 from flask import Flask, request, send_from_directory
@@ -47,7 +49,7 @@ def create_app(test_config=None):
     @app.route('/hello')
     def hello_world():
         return 'Hello, World!'
-    
+
     # for face-api.js
     @app.route('/age_gender_model-weights_manifest.json')
     def serve_model1():
@@ -128,7 +130,6 @@ def create_app(test_config=None):
     @app.route('/practice/github_link_icon.png')
     def serve_link_icon():
         return send_from_directory('static', 'github_link_icon.png')
-
 
     # register the database commands
     from flaskr import db

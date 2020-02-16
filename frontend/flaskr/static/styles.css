@@ -74,3 +74,37 @@
 #facesContainer canvas {
   margin: 10px;
 }
+
+.instructionContainer {
+  display: flex;
+  justify-content: center;
+}
+
+#closeInstructionDiv {
+  text-align: center;
+  width: 50%;
+  font-size: 1.5rem;
+}
+
+.missionDiv {
+  text-align: center;
+}
+
+.mouthImg {
+  width: 50%;
+}
+
+.mouthInstructionDiv {
+  font-size: 1.5rem;
+  text-align: center;
+}
+
+.successDiv {
+  font-size: 1.8rem;
+  text-align: center;
+}
+
+#adviceDiv {
+  font-size: 1.5rem;
+  text-align: center;
+}
