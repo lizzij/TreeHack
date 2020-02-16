@@ -12,10 +12,13 @@
 {% endblock %}
 
 {% block content %}
+	<div class="speech-bubble-left"><p>Hello!</p></div>
+	<div class="speech-bubble-right"><p>Hello!</p></div>
 
-    <div class="ui center aligned basic segment container">
-      <h2 class="ui block basic header">Start my session</h2>
+  <div class="ui center aligned basic segment container">
+
       <form id="form" class="ui form" action="javascript:void(0);">
+
         <div class="ui action big labeled fluid input field">
           <div class="ui icon basic label button" onclick="onMicrophoneClick()">
             <i id="voiceIcon" class="unmute big icon"></i>
@@ -34,12 +37,12 @@
           </button>
         </div>
 
-        <div class="ui field">
+        <!-- <div class="ui field">
           <label class="ui label" for="file"
             >Or upload a recorded voice query from a file</label
           >
           <input type="file" id="file" name="file" onchange="onFileUpload()" />
-        </div>
+        </div> -->
 
         <div id="status" class="ui info message">
           Click on microphone icon or type in the text query.
@@ -245,21 +248,22 @@
 
 				// render hello
 				// window.location.href='{{ url_for('score.display_score') }}';
-				console.log(action)
+				console.log(action);
+
 
       } else if (action == "start_session") {
 
 				// expected vs actual test
-				console.log(action)
+				console.log(action);
 
 			} else if (action == "start_exercises") {
 
 				// start face movement exercises
-				console.log(action)
+				console.log(action);
 
 			} else if (action == "restart_session") {
 
-				console.log(action)
+				console.log(action);
 				window.location.href='{{ url_for('record.index') }}';
 			}
 
