@@ -14,50 +14,53 @@
 {% block content %}
 	<div class="speech-bubble-left"><p>Hello!</p></div>
 	<div class="speech-bubble-right" id="firstResponse" style="visibility:hidden;"><p></p></div>
+	<div class="speech-bubble-left" id="secondResponse" style="visibility:hidden;"><p></p></div>
+	<div id="voiceInputContainer">
+		<div class="ui center aligned basic segment container" id="voiceInput">
 
-  <div class="ui center aligned basic segment container">
+	      <form id="form" class="ui form" action="javascript:void(0);">
 
-      <form id="form" class="ui form" action="javascript:void(0);">
+	        <div class="ui action big labeled fluid input field">
+	          <div class="ui icon basic label button" onclick="onMicrophoneClick()">
+	            <i id="voiceIcon" class="unmute big icon"></i>
+	          </div>
+	          <input
+	            id="query"
+	            type="text"
+	            placeholder="Click on a microphone icon or type in your query"
+	          />
+	          <button
+	            id="textSearchButton"
+	            class="ui icon button"
+	            onclick="initTextRequest()"
+	          >
+	            <i class="search big icon"></i>
+	          </button>
+	        </div>
 
-        <div class="ui action big labeled fluid input field">
-          <div class="ui icon basic label button" onclick="onMicrophoneClick()">
-            <i id="voiceIcon" class="unmute big icon"></i>
-          </div>
-          <input
-            id="query"
-            type="text"
-            placeholder="Click on a microphone icon or type in your query"
-          />
-          <button
-            id="textSearchButton"
-            class="ui icon button"
-            onclick="initTextRequest()"
-          >
-            <i class="search big icon"></i>
-          </button>
-        </div>
+	        <!-- <div class="ui field">
+	          <label class="ui label" for="file"
+	            >Or upload a recorded voice query from a file</label
+	          >
+	          <input type="file" id="file" name="file" onchange="onFileUpload()" />
+	        </div> -->
 
-        <!-- <div class="ui field">
-          <label class="ui label" for="file"
-            >Or upload a recorded voice query from a file</label
-          >
-          <input type="file" id="file" name="file" onchange="onFileUpload()" />
-        </div> -->
+	        <div id="status" class="ui info message">
+	          Click on microphone icon or type in the text query.
+	        </div>
 
-        <div id="status" class="ui info message">
-          Click on microphone icon or type in the text query.
-        </div>
+	        <div class="ui field" hidden>
+	          <label>Response object</label>
+	          <textarea id="responseJSON"></textarea>
+	        </div>
+	        <div class="ui field" hidden>
+	          <label>Search info object</label>
+	          <textarea id="infoJSON"></textarea>
+	        </div>
+	      </form>
+	    </div>
+	</div>
 
-        <div class="ui field" hidden>
-          <label>Response object</label>
-          <textarea id="responseJSON"></textarea>
-        </div>
-        <div class="ui field" hidden>
-          <label>Search info object</label>
-          <textarea id="infoJSON"></textarea>
-        </div>
-      </form>
-    </div>
 
   <script>
     // Start of Houndify code
@@ -227,6 +230,12 @@
       reader.readAsArrayBuffer(file);
     }
 
+		function chooseText() {
+			var arr = ["cheese", "the rain in spain falls mainly on the plain",
+                "placeholderB", "placeholderC"];
+			return arr[Math.floor(Math.random() * arr.length)];
+		}
+
     //Fires after server responds with Response JSON
     //Info object contains useful information about the completed request
     //See https://houndify.com/reference/HoundServer
@@ -259,6 +268,16 @@
 
 				// expected vs actual test
 				console.log(action);
+				var firstResponse = document.getElementById("firstResponse");
+				firstResponse.style.visibility='visible'
+				var transcript = response.Disambiguation.ChoiceData[0].FormattedTranscription;
+				console.log(transcript)
+				firstResponse.innerText = transcript;
+
+				var secondResponse = document.getElementById("secondResponse");
+				secondResponse.style.visibility='visible'
+				var actualText = chooseText();
+				secondResponse.innerText = 'Say ' + actualText;
 
 			} else if (action == "start_exercises") {
 
