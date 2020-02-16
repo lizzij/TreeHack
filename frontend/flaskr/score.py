@@ -73,7 +73,7 @@ def display_score():
         col["pred_word"] = " ".join(data["pred_words"])
         if data["is_match"]:
             col["true_color"] = colors["correct"]
-            col["pred_word"] = ""
+            col["pred_color"] = colors["correct"]
         elif len(data["pred_words"]) == 0:
             col["true_color"] = colors["omission"]
             col["true_issue"] = "omission"

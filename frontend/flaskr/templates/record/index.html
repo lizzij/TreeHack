@@ -67,6 +67,60 @@
   <script src="https://unpkg.com/synth-js/dst/synth.min.js"></script>
   <script>
     // Start of Houndify code
+
+    function textToSpeech(phrase) {
+      window.speechSynthesis.cancel();
+      // list of languages is probably not loaded, wait for it
+      if(window.speechSynthesis.getVoices().length == 0) {
+        window.speechSynthesis.addEventListener('voiceschanged', function() {
+          textToSpeechHelper(phrase);
+        });
+      }
+      else {
+        // languages list available, no need to wait
+        textToSpeechHelper(phrase);
+      }
+
+    }
+
+    function textToSpeechHelper(phrase) {
+      // get all voices that browser offers
+      var available_voices = window.speechSynthesis.getVoices();
+      console.log(available_voices);
+      // this will hold an english voice
+      var english_voice = '';
+
+      // find voice by language locale "en-US"
+      // if not then select the first voice
+      /* We want uk female!
+      for(var i=0; i<available_voices.length; i++) {
+        if(available_voices[i].lang === 'en-US') {
+          english_voice = available_voices[i];
+          break;
+        }
+      }
+      */
+     english_voice = available_voices[4];
+      if(english_voice === '')
+        english_voice = available_voices[0];
+
+      // new SpeechSynthesisUtterance object
+      var utter = new SpeechSynthesisUtterance();
+      utter.rate = 1;
+      utter.pitch = 1;
+      utter.text = phrase;
+      utter.voice = english_voice;
+
+      // event after text has been spoken
+      utter.onend = function() {
+        console.log('Speech has finished');
+        window.speechSynthesis.cancel();
+      }
+
+      // speak
+      window.speechSynthesis.speak(utter);
+    }
+
     //HTML ELEMENTS FOR DISPLAYING RESPONSE AND INFO JSON's
     var responseElt = document.getElementById("responseJSON");
     var infoElt = document.getElementById("infoJSON");
@@ -111,51 +165,71 @@
 
       var queryString = document.getElementById("query").value;
       statusElt.innerText = "Sending text request...";
-
-      //Initialize TextRequest
-      var textRequest = new Houndify.TextRequest({
-      //Text query
-      query: queryString,
-
-      //Your Houndify Client ID
-      clientId: clientID,
-
-      //For testing environment you might want to authenticate on frontend without Node.js server.
-      //In that case you may pass in your Houndify Client Key instead of "authURL".
-      clientKey: "3lHbv1T8X5UDUa4tGhogToKa9iBIAMLdGK02zUq-ZwsBZ6BdaAElh42Z-nVnDoKfiu_3zCYxqrL4Ux2Iqs7X9A==",
-
-      //Otherwise you need to create an endpoint on your server
-      //for handling the authentication.
-      //See SDK's server-side method HoundifyExpress.createAuthenticationHandler().
-      //authURL: "/houndifyAuth",
-
-      //REQUEST INFO JSON
-      //See https://houndify.com/reference/RequestInfo
-      requestInfo: {
-        UserID: "test_user",
-        Latitude: 37.388309,
-        Longitude: -121.973968,
-      },
-
-      //Pass the current ConversationState stored from previous queries
-      //See https://www.houndify.com/docs#conversation-state
-      conversationState: conversationState,
-
-      //You need to create an endpoint on your server
-      //for handling the authentication and proxying
-      //text search http requests to Houndify backend
-      //See SDK's server-side method HoundifyExpress.createTextProxyHandler().
-      proxy: {
-        method: "POST",
-        url: "/textSearchProxy",
-        // headers: {}
-        // ... More proxy options will be added as needed
-      },
-
-      //Response and error handlers
-      onResponse: onResponse,
-      onError: onError,
+      fetch('/textSearchProxy?query=' + encodeURIComponent(queryString))
+      .then(
+        function(response) {
+          if (response.status !== 200) {
+            console.log('Looks like there was a problem. Status Code: ' +
+              response.status);
+            return;
+          }
+          // Examine the text in the response
+          response.json().then(function(data) {
+            console.log(data);
+            onResponse(data, {});
+          });
+        }
+      )
+      .catch(function(err) {
+        console.log('Fetch Error :-S', err);
+        onError(data, {});
       });
+      //Initialize TextRequest
+      /*
+      var textRequest = new Houndify.TextRequest({
+        //Text query
+        query: queryString,
+
+        //Your Houndify Client ID
+        clientId: clientID,
+
+        //For testing environment you might want to authenticate on frontend without Node.js server.
+        //In that case you may pass in your Houndify Client Key instead of "authURL".
+        clientKey: "3lHbv1T8X5UDUa4tGhogToKa9iBIAMLdGK02zUq-ZwsBZ6BdaAElh42Z-nVnDoKfiu_3zCYxqrL4Ux2Iqs7X9A==",
+
+        //Otherwise you need to create an endpoint on your server
+        //for handling the authentication.
+        //See SDK's server-side method HoundifyExpress.createAuthenticationHandler().
+        //authURL: "/houndifyAuth",
+
+        //REQUEST INFO JSON
+        //See https://houndify.com/reference/RequestInfo
+        requestInfo: {
+          UserID: "test_user",
+          Latitude: 37.388309,
+          Longitude: -121.973968,
+        },
+
+        //Pass the current ConversationState stored from previous queries
+        //See https://www.houndify.com/docs#conversation-state
+        conversationState: conversationState,
+
+        //You need to create an endpoint on your server
+        //for handling the authentication and proxying
+        //text search http requests to Houndify backend
+        //See SDK's server-side method HoundifyExpress.createTextProxyHandler().
+        proxy: {
+          method: "POST",
+          url: "/textSearchProxy",
+          // headers: {}
+          // ... More proxy options will be added as needed
+        },
+
+        //Response and error handlers
+        onResponse: onResponse,
+        onError: onError,
+      });
+      */
     }
 
     function initVoiceRequest(sampleRate) {
@@ -319,7 +393,7 @@
 
       statusElt.innerText = "Received response.";
       responseElt.parentNode.hidden = false;
-      responseElt.value = response.stringify(undefined, 2);
+      responseElt.value = JSON.stringify(response, undefined, 2);
 
       let action = (response.AllResults[0].Result || {}).action;
       if (action === undefined) {
@@ -332,7 +406,7 @@
 				var firstResponse = document.getElementById("firstResponse");
 				firstResponse.style.visibility='visible'
 				var transcript = response.Disambiguation.ChoiceData[0].FormattedTranscription;
-				console.log(transcript)
+        console.log(transcript);
 				firstResponse.innerText = transcript;
 
         var secondResponse = document.getElementById("secondResponse");
@@ -351,7 +425,9 @@
 				var secondResponse = document.getElementById("secondResponse");
 				secondResponse.style.visibility='visible';
 				var actualText = chooseText();
-				secondResponse.innerText = 'Say: ' + actualText;
+        secondResponse.innerText = 'Say: ' + actualText;
+        
+        textToSpeech(secondResponse.innerText);
 
         // TODO send the actualText and encoded wva, get back score
         startSession();
@@ -360,11 +436,13 @@
 
 				// start face movement exercises
 				console.log(action);
+        textToSpeech("Alright, starting your exercises!");
         window.location.href='{{ url_for('practice.start_practice') }}';
 
 			} else if (action == "restart_session") {
 
 				console.log(action);
+        textToSpeech("Sounds good, restarting your session.");
 				window.location.href='{{ url_for('record.index') }}';
 			}
 
