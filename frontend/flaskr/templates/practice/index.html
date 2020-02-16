@@ -11,7 +11,6 @@
 <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
 <script src="{{ url_for('static', filename='js_bootstrap/bootstrap.js') }}"></script>
-<!-- <link rel="stylesheet" href="styles.css"> -->
 <link rel="stylesheet" href="{{ url_for('static', filename='css_bootstrap/bootstrap.css') }}">
 
 {% endblock %}
@@ -140,7 +139,7 @@
     function detectMouthClosed(mouthPoints) {
         const currInnerWidth = length(mouthPoints[12], mouthPoints[16]);
         const currInnerHeight = length(mouthPoints[14], mouthPoints[18]);
-        if (currInnerHeight / currInnerWidth < 1) {
+        if (currInnerHeight / currInnerWidth < 0.1) {
             return true;
         } else {
             return false;
@@ -164,7 +163,7 @@
         if (currOuterWidth / restingMeasures['dist_0_6'] > 0.85 &&
             currOuterWidth / restingMeasures['dist_0_6'] < 1.1 &&
             currInnerHeight / currInnerWidth > 0.3 &&
-            currInnerHeight / currInnerWidth < 0.5) { // success
+            currInnerHeight / currInnerWidth < 0.6) { // success
                 console.log(currInnerHeight / currInnerWidth);
                 return null;
         } else {
@@ -327,7 +326,7 @@
         const currInnerWidth = length(mouthPoints[12], mouthPoints[16]);
         const currInnerHeight = length(mouthPoints[14], mouthPoints[18]);
         const lipHeight = length(mouthPoints[3], mouthPoints[14]);
-        if (currOuterWidth / restingMeasures['dist_0_6'] > 1 &&
+        if (currOuterWidth / restingMeasures['dist_0_6'] > 0.95 &&
             currOuterWidth / restingMeasures['dist_0_6'] < 1.3 &&
             currInnerHeight / currInnerWidth > 0.13 &&
             currInnerHeight / currInnerWidth < 0.28) { // success
@@ -405,14 +404,14 @@
         }
     }
 
-    function adjustOMouthPoints(mouthPoints, ratio) {
+    function adjustOMouthPoints(mouthPoints) {
         const currOuterWidth = length(mouthPoints[0], mouthPoints[6]);
         const currInnerWidth = length(mouthPoints[12], mouthPoints[16]);
         const currInnerHeight = length(mouthPoints[14], mouthPoints[18]);
         const currInnerUpperWidth = length(mouthPoints[13], mouthPoints[15]);
         const currInnerLowerWidth = length(mouthPoints[17], mouthPoints[19]);
         const lipHeight = length(mouthPoints[3], mouthPoints[14]);
-        // console.log(currInnerHeight / currInnerWidth, currOuterWidth / restingMeasures['dist_0_6']);
+        // console.log(currInnerHeight / currInnerWidth, currOuterWidth / restingMeasures['dist_0_6'], currInnerUpperWidth / restingMeasures['dist_13_15']);
         if (currOuterWidth / restingMeasures['dist_0_6'] < 0.95 &&
             currOuterWidth / restingMeasures['dist_0_6'] > 0.6 &&
             currInnerHeight / currInnerWidth > 0.25 &&
@@ -621,6 +620,10 @@
             // point 42 ~ 47 - right eye
             // point 48 ~ 67 - mouth
 
+            if (detectMouthClosed(mouthPoints)) {
+                restingMeasures = getRestingMeasures(mouthPoints);
+            }
+
             let adjustedMouthPoints;
             if (hasSucceeded) {
                 let img;
@@ -666,7 +669,7 @@
                 if (Date.now() - restStartTime > 1000) {
                     console.log('Closed Test Passed');
                     updateMission();
-                    restingMeasures = getRestingMeasures(mouthPoints);
+                    // restingMeasures = getRestingMeasures(mouthPoints);
                     inRest = false;
                     document.getElementById('closeInstructionDiv').style.display = "none";
                 }
