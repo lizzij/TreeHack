@@ -1,3 +1,13 @@
+a {
+  color: #EE3670 !important;
+}
+
+h1 {
+  font-family: serif;
+  color: #EE3670 !important;
+  margin: 1rem 0;
+}
+
 .speech-bubble-right {
   background: #efefef;
   -webkit-border-radius: 4px;
@@ -28,7 +38,7 @@
 }
 
 .speech-bubble-left {
-  background: #FFFF00;
+  background: #A7DDE8;
   -webkit-border-radius: 4px;
   border-radius: 4px;
   font-size: 1.2rem;
@@ -48,7 +58,7 @@
 
 .speech-bubble-left::after {
   border-right: 20px solid transparent;
-  border-top: 20px solid #FFFF00;
+  border-top: 20px solid #A7DDE8;
   bottom: -20px;
   content: "";
   position: absolute;
