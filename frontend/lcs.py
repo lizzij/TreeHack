@@ -44,28 +44,18 @@ def lcs(a, b):
             last_match_a = i-1
             last_match_b = matched_b_index
     last_triplet = [a[last_match_a + 1:], [], False]
-    last_matched_b_word = triplets[-1][1]
-    for k in range(len(b) - 1, 0, -1):
-        if b[k] == last_matched_b_word:
-            last_triplet[1] = b[k+1:]
-            break
-    
-    
-    
-    """for i in range(len(a) - 1, 0, -1):
-        if lengths[i - 1][j - 1] != lengths[i][j - 1]:
-            if g - 1 == i:
+    if len(triplets) > 0:
+        last_matched_b_word = triplets[-1][1]
+        for k in range(len(b) - 1, 0, -1):
+            if b[k] == last_matched_b_word:
+                last_triplet[1] = b[k+1:]
                 break
-            last_triplet[0] = a[i + 1:]
-    for k in range(len(b) - 1, 0, -1):
-        if lengths[g - 1][k - 1] != lengths[g - 1][k]:
-            if j - 1 == k:
-                break
-            last_triplet[1] = b[k + 1:]"""
+    else:
+        last_triplet[1] = b
+
     if len(last_triplet[0]) + len(last_triplet[1]) > 0:
         triplets.append(tuple(last_triplet))
 
-    # print()
     # pprint(triplets)
  
     return result, triplets

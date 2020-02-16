@@ -4,6 +4,7 @@
 <h1>{% block title %}{% endblock %}</h1>
 <script src="https://unpkg.com/houndify@3.0.3/dist/houndify.js"></script>
 <script src="https://unpkg.com/jquery@3.3.1/dist/jquery.js"></script>
+<!-- <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script> -->
 <!-- This is the houndify css-->
 <link
   rel="stylesheet"
@@ -45,38 +46,47 @@
       <div class="tooltip tooltiptop"
       style="display:flex; justify-content:center; font-size: 1.4rem; padding:10px;"
       >
-        {{ col["true_word"] }}
+        {% if col["true_word"] != "" %}
+          {{ col["true_word"] }}
+        {% else %}
+          <br>
+        {% endif %}
         {% if col["true_issue"] != "" %}
-          <span class="tooltiptext">{{col["true_issue"]}}</span>
+          <span class="tooltiptext" style="z-index: 10;">{{col["true_issue"]}}</span>
         {% endif %}
       </div>
     </div>
     <div class="row zoom"
-    style="background-color:{{ col["pred_color"] }}; color:black; margin-top: 10px; margin-bottom: 10px; border-radius:5px;">
+    style="background-color:{{ col["spoken_color"] }}; color:black; margin-top: 10px; margin-bottom: 10px; border-radius:5px;">
       <div class="tooltipbottom"
       style="display:flex; justify-content:center; font-size: 1.4rem; padding:10px"
       >
-        {{ col["pred_word"] }}
-        {% if col["pred_issue"] != ""%}
-        <span class="tooltiptextbottom">{{col["pred_issue"]}}</span>
+        {% if col["spoken_word"] != "" %}
+          {{ col["spoken_word"] }}
+        {% else %}
+          <br>
+        {% endif %}
+        {% if col["spoken_issue"] != "" %}
+        <span class="tooltiptextbottom" style="z-index: 10;">{{col["spoken_issue"]}}</span>
         {% endif %}
       </div>
     </div>
   </div>
   {% endfor %}
   </div>
-
+  <!-- <canvas id="myChart" width="400" height="400"></canvas> -->
   <div id="conversationContainer">
 
     <div id="choicesContainer">
-      <input class="choices" type="button" id="pracBut" value="Practice" />
+      <input class="choices" type="button" id="pracBut" value="Practice exercises" />
       <input class="choices" type="button" id="dyspraxiaBut" value="Tell me about dyspraxia" />
       <input class="choices" type="button" id="dysfluencyBut" value="Tell me about disfluency" />
     </div>
 
-    <div class="speech-bubble-right" id="firstResponse" style="visibility:hidden;"><p></p></div>
+    <div class="speech-bubble-right" id="firstResponse" style="visibility:hidden; display: none"><p></p></div>
+    <div class="speech-bubble-left" id="secondResponse" style="visibility:hidden; display: none"><p></p></div>
 
-    <p id="definitionText"></p>
+    <p id="definitionText" style="margin-bottom: 15px; display: none"></p>
   </div>
 
   <div id="voiceInputContainer">
@@ -121,7 +131,46 @@
       </div>
     </form>
   </div>
-
+  <!-- <script>
+    var ctx = document.getElementById('myChart').getContext('2d');
+    var myChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+            datasets: [{
+                label: '# of Votes',
+                data: [12, 19, 3, 5, 2, 3],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',
+                    'rgba(54, 162, 235, 0.2)',
+                    'rgba(255, 206, 86, 0.2)',
+                    'rgba(75, 192, 192, 0.2)',
+                    'rgba(153, 102, 255, 0.2)',
+                    'rgba(255, 159, 64, 0.2)'
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)',
+                    'rgba(255, 159, 64, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true
+                    }
+                }]
+            }
+        }
+    });
+  </script>
+   -->
   <script>
     function textToSpeech(phrase) {
       window.speechSynthesis.cancel();
@@ -161,7 +210,7 @@
 
       // new SpeechSynthesisUtterance object
       var utter = new SpeechSynthesisUtterance();
-      utter.rate = 1;
+      utter.rate = 0.75;
       utter.pitch = 1;
       utter.text = phrase;
       utter.voice = english_voice;
@@ -400,10 +449,22 @@
       }
 
       statusElt.innerText = "Received response.";
-      responseElt.parentNode.hidden = false;
-      responseElt.value = JSON.stringify(response, undefined, 2);
+      // responseElt.parentNode.hidden = false;
+      // responseElt.value = JSON.stringify(response, undefined, 2);
 
       let commandType = response.AllResults[0].CommandKind;
+      let action = (response.AllResults[0].Result || {}).action;
+
+      console.log(action);
+      var firstResponse = document.getElementById("firstResponse");
+      firstResponse.style.visibility='visible';
+      firstResponse.style.display='';
+      var transcript = response.Disambiguation.ChoiceData[0].FormattedTranscription;
+      console.log(transcript)
+      firstResponse.innerText = transcript;
+
+      var secondResponse = document.getElementById("secondResponse");
+
       console.log(commandType);
       if (commandType == "InformationCommand" ||
           commandType == "DictionaryCommand") {
@@ -412,9 +473,39 @@
         let writtenResponse = response.AllResults[0].WrittenResponseLong;
         definitionText.innerText = writtenResponse;
         textToSpeech(spokenResponse);
-      }
+        secondResponse.style.visibility='visible';
+        secondResponse.style.display='';
+        secondResponse.innerText = writtenResponse;
 
-			// window.location.href='{{ url_for('score.display_score') }}';
+      } else {
+        if (action === undefined) {
+          // errored
+        } else if (action == "start_exercises") {
+
+          // start face movement exercises
+          console.log(action);
+          secondResponse.style.visibility='visible';
+          secondResponse.style.display='';
+          secondResponse.innerText = "Alright, starting your exercises!";
+
+          textToSpeech("Alright, starting your exercises!");
+          setTimeout(function(){
+            window.location.href='{{ url_for('practice.start_practice') }}';
+          }, 3000);
+          
+
+        } else if (action == "restart_session") {
+
+          console.log(action);
+          secondResponse.style.visibility='visible';
+          secondResponse.innerText = "Sounds good, let's do another session.";
+          secondResponse.style.display='';
+          textToSpeech("Sounds good, let's do another session.");
+          setTimeout(function(){
+            window.location.href='{{ url_for('record.index') }}';
+          }, 3000);
+        }
+      }
 
       //infoElt.parentNode.hidden = false;
       //infoElt.value = JSON.stringify(info, undefined, 2);

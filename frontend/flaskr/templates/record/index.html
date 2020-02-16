@@ -13,11 +13,16 @@
 
 {% block content %}
   <div id="conversationContainer">
-    <div class="speech-bubble-left"><p>Hello!</p></div>
+    <div class="speech-bubble-left"><p>Hello! Tell me what you want to do: "Start my therapy" or "Start my exercises"</p></div>
     <div class="speech-bubble-right" id="firstResponse" style="visibility:hidden;"><p></p></div>
     <div class="speech-bubble-left" id="secondResponse" style="visibility:hidden;"><p></p></div>
-    <input type="button" id="mixBut" value="Start" style="visibility:hidden;" />
+    
+    <div id="choicesContainer">
+      <input class="choices" type="button" id="mixBut" value="Start" style="visibility:hidden;" />
+    </div>
   </div>
+  
+  <div class="loader" style="display:none" id="processing_loader"></div>
 	<div id="voiceInputContainer">
 		<div class="ui center aligned basic segment container" id="voiceInput">
 
@@ -106,7 +111,7 @@
 
       // new SpeechSynthesisUtterance object
       var utter = new SpeechSynthesisUtterance();
-      utter.rate = 1;
+      utter.rate = 0.75;
       utter.pitch = 1;
       utter.text = phrase;
       utter.voice = english_voice;
@@ -308,8 +313,11 @@
     }
 
 		function chooseText() {
-			var arr = ["cheese", "the rain in spain falls mainly on the plain",
-                "placeholderB", "placeholderC"];
+			var arr = [
+        'my grandfather you asked to know all about how he is nearly ninety three years old',
+        'the things they asked about were whether the judge should be the one that does the sentencing',
+        'the rain in spain falls mainly on the plain'
+      ];
 			return arr[Math.floor(Math.random() * arr.length)];
 		}
 
@@ -333,12 +341,12 @@
   		function Stop() {
   			console.log("Stopped");
   			mixBut.removeEventListener("click", Stop);
-  			mixBut.addEventListener("click", ToEval);
-  			mixBut.value = "Evaluate";
-  			function ToEval() {
-  				console.log("Evaluate");
-  				window.location.href='{{ url_for('score.display_score') }}';
-  			}
+        // mixBut.addEventListener("click", ToEval);
+  			mixBut.value = "Evaluating";
+  			// function ToEval() {
+  			//  	console.log("Evaluate");
+  			//  	//window.location.href='/score';
+  			//  }
   		}
 
   		var handleSuccess = function(stream) {
@@ -353,7 +361,7 @@
   			processor.onaudioprocess = function(e) {
   				data.push.apply(data, e.inputBuffer.getChannelData(0));
   				// cut off after 5 seconds
-  				if (mixBut.value === "Evaluate") {
+  				if (mixBut.value == "Evaluating") {
   					context.close();
   					var track = stream.getAudioTracks()[0];
   					track.stop();
@@ -366,12 +374,18 @@
             xhr.onload=function(e) {
                 if(this.readyState === 4) {
                     console.log("Server returned: ",e.target.responseText);
+                    response = JSON.stringify(JSON.parse(e.target.responseText));
+  			          	window.location.href='/score/' + response;
                 }
             };
             var fd = new FormData();
             fd.append("wav_file", blob, "filename.wav");
             fd.append("target_sentence", secondResponse.innerText.slice(5));
             xhr.open("POST","/process_audio",true);
+            
+            var processLoader = document.getElementById("processing_loader");
+            processLoader.style.display = "";
+            mixBut.style.display = "none";
             xhr.send(fd);
             /*
             var data = new FormData()
@@ -413,16 +427,13 @@
       }
 
       statusElt.innerText = "Received response.";
-      responseElt.parentNode.hidden = false;
-      responseElt.value = JSON.stringify(response, undefined, 2);
+      //responseElt.parentNode.hidden = false;
+      //responseElt.value = JSON.stringify(response, undefined, 2);
 
       let action = (response.AllResults[0].Result || {}).action;
       if (action === undefined) {
         // errored
       } else if (action == "greeting") {
-
-				// render hello
-				// window.location.href='{{ url_for('score.display_score') }}';
 				console.log(action);
 				var firstResponse = document.getElementById("firstResponse");
 				firstResponse.style.visibility='visible'
@@ -430,8 +441,10 @@
         console.log(transcript);
 				firstResponse.innerText = transcript;
 
-        var secondResponse = document.getElementById("secondResponse");
-				secondResponse.style.visibility='hidden';
+				var secondResponse = document.getElementById("secondResponse");
+				secondResponse.style.visibility='visible';
+        secondResponse.innerText = response.AllResults[0].SpokenResponse;
+        textToSpeech(response.AllResults[0].SpokenResponse);
 
       } else if (action == "start_session") {
 
@@ -458,13 +471,18 @@
 				// start face movement exercises
 				console.log(action);
         textToSpeech("Alright, starting your exercises!");
-        window.location.href='{{ url_for('practice.start_practice') }}';
+        setTimeout(function(){
+          window.location.href='{{ url_for('practice.start_practice') }}';
+        }, 3000);
 
 			} else if (action == "restart_session") {
 
 				console.log(action);
         textToSpeech("Sounds good, restarting your session.");
-				window.location.href='{{ url_for('record.index') }}';
+        
+        setTimeout(function(){
+				  window.location.href='{{ url_for('record.index') }}';
+        }, 3000);
 			}
 
       //infoElt.parentNode.hidden = false;

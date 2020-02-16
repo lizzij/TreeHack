@@ -1,4 +1,5 @@
 uploads
+houndify*
 venv/
 *.pyc
 __pycache__/

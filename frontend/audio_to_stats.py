@@ -40,7 +40,7 @@ API endpoints to access NLP processing methods for news articles.
 
 
 def compute_stats(target_sentence, results):
-    transcript = str(results['results'][0]['alternatives'][0]['transcript'])
+    transcript = str(results['results'][0]['alternatives'][0]['transcript']).lower()
     print("Target: " + target_sentence)
     print("Transcript: " + transcript)
 
