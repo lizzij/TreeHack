@@ -12,9 +12,11 @@
 {% endblock %}
 
 {% block content %}
-	<div class="speech-bubble-left"><p>Hello!</p></div>
-	<div class="speech-bubble-right" id="firstResponse" style="visibility:hidden;"><p></p></div>
-	<div class="speech-bubble-left" id="secondResponse" style="visibility:hidden;"><p></p></div>
+  <div id="conversationContainer">
+    <div class="speech-bubble-left"><p>Hello!</p></div>
+    <div class="speech-bubble-right" id="firstResponse" style="visibility:hidden;"><p></p></div>
+    <div class="speech-bubble-left" id="secondResponse" style="visibility:hidden;"><p></p></div>
+  </div>
 	<div id="voiceInputContainer">
 		<div class="ui center aligned basic segment container" id="voiceInput">
 
@@ -264,6 +266,9 @@
 				console.log(transcript)
 				firstResponse.innerText = transcript;
 
+        var secondResponse = document.getElementById("secondResponse");
+				secondResponse.style.visibility='hidden';
+
       } else if (action == "start_session") {
 
 				// expected vs actual test
@@ -275,14 +280,17 @@
 				firstResponse.innerText = transcript;
 
 				var secondResponse = document.getElementById("secondResponse");
-				secondResponse.style.visibility='visible'
+				secondResponse.style.visibility='visible';
 				var actualText = chooseText();
-				secondResponse.innerText = 'Say ' + actualText;
+				secondResponse.innerText = 'Say: ' + actualText;
+
+        // TODO send the actualText and encoded wva, get back score 
 
 			} else if (action == "start_exercises") {
 
 				// start face movement exercises
 				console.log(action);
+        window.location.href='{{ url_for('practice.start_practice') }}';
 
 			} else if (action == "restart_session") {
 

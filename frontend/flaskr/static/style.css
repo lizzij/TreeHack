@@ -1,3 +1,14 @@
+html {
+  font-family: sans-serif;
+  background: white;
+  padding: 1rem;
+}
+
+body {
+  margin: 0 auto;
+  background: white;
+}
+
 a {
   color: #EE3670 !important;
 }
@@ -6,6 +17,11 @@ h1 {
   font-family: serif;
   color: #EE3670 !important;
   margin: 1rem 0;
+}
+
+#conversationContainer {
+  padding-left: 10rem;
+  padding-right: 10rem;
 }
 
 .speech-bubble-right {
@@ -19,6 +35,7 @@ h1 {
   padding: 15px;
   position: relative;
   text-align: right;
+  align-self: flex-end;
 }
 
 .speech-bubble-right p {
@@ -47,6 +64,7 @@ h1 {
   max-width: 400px;
   padding: 15px;
   position: relative;
+  align-self: flex-start;
 }
 
 .speech-bubble-left p {

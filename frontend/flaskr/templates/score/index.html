@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block header %}
-<h1>{% block title %}Score{% endblock %}</h1>
+<h1>{% block title %}{% endblock %}</h1>
 <script src="https://unpkg.com/houndify@3.0.3/dist/houndify.js"></script>
 <!-- This is the houndify css-->
 <link
@@ -11,12 +11,9 @@
 {% endblock %}
 
 {% block content %}
-  {% for label, score in scores.items() %}
-    <h1>{{ label }}: {{ score }}</h1>
-  {% endfor %}
-  
+
 	<input type="button" id="mixBut" value="Start" />
-	
+
   <div class="ui center aligned basic segment container">
     <h2 class="ui block basic header">Houndify JavaScript SDK Demo</h2>
     <form id="form" class="ui form" action="javascript:void(0);">
@@ -339,7 +336,7 @@
       statusElt.innerText = "Received response.";
       responseElt.parentNode.hidden = false;
       responseElt.value = JSON.stringify(response, undefined, 2);
-    
+
       let commandType = response.AllResults[0].CommandKind;
       console.log(commandType);
       if (commandType == "InformationCommand" ||
@@ -350,7 +347,7 @@
         definitionText.innerText = writtenResponse.replace(/%20/g, ' ');
         textToSpeech(spokenResponse);
       }
-        
+
 			// window.location.href='{{ url_for('score.display_score') }}';
 
       //infoElt.parentNode.hidden = false;

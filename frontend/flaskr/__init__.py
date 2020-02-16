@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import os
 
 from flask import Flask, request
@@ -44,9 +46,6 @@ def create_app(test_config=None):
         print(response)
         return response
 
-    @app.route('/')
-    def hello_world():
-        return 'Hello, World!'
     # register the database commands
     from flaskr import db
 
