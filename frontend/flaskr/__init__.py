@@ -2,8 +2,16 @@
 
 import os
 
-from flask import Flask, request, send_from_directory
+from flask import Flask, request, send_from_directory, flash, redirect, url_for
 import houndify
+from werkzeug.utils import secure_filename
+import requests
+
+UPLOAD_FOLDER = 'uploads'
+ALLOWED_EXTENSIONS = {'wav'}
+
+if not os.path.exists(UPLOAD_FOLDER):
+    os.mkdir(UPLOAD_FOLDER)
 
 clientId = "6gG_SPtR_YNCOaTvI0IK5w=="
 clientKey = "3lHbv1T8X5UDUa4tGhogToKa9iBIAMLdGK02zUq-ZwsBZ6BdaAElh42Z-nVnDoKfiu_3zCYxqrL4Ux2Iqs7X9A=="
@@ -15,6 +23,12 @@ requestInfo = {
 
 client = houndify.TextHoundClient(clientId, clientKey, userId, requestInfo)
 
+def allowed_file(filename):
+    return '.' in filename and \
+        filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+COMMON_FILE_NAME = "speech.wav"
+
 def create_app(test_config=None):
     """Create and configure an instance of the Flask application."""
     app = Flask(__name__, instance_relative_config=True)
@@ -23,6 +37,7 @@ def create_app(test_config=None):
         SECRET_KEY="dev",
         # store the database in the instance folder
         DATABASE=os.path.join(app.instance_path, "flaskr.sqlite"),
+        UPLOAD_FOLDER=UPLOAD_FOLDER
     )
 
     if test_config is None:
@@ -45,6 +60,54 @@ def create_app(test_config=None):
         response = client.query(query)
         print(response)
         return response
+
+    @app.route('/process_audio', methods=['GET', 'POST'])
+    def process_audio():
+        if request.method == 'POST':
+            # check if the post request has the file part
+            print("files", request.files)
+            print("form", request.form)
+            if 'wav_file' not in request.files:
+                flash('No file part')
+                return redirect(request.url)
+            file = request.files['wav_file']
+            # if user does not select file, browser also
+            # submit an empty part without filename
+            if file.filename == '':
+                flash('No selected file')
+                return redirect(request.url)
+            if request.form.get('target_sentence') == None:
+                flash('No target sentence')
+                return redirect(request.url)
+            target_sentence = request.form.get('target_sentence')
+            if file and allowed_file(file.filename):
+                #filename = secure_filename(file.filename)
+                filename = secure_filename(COMMON_FILE_NAME)
+                filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(filepath)
+                r = requests.post(
+                    url='http://localhost:5050/compute_stats_from_audio',
+                    data={
+                        "filename": filename,
+                        "target_sentence": target_sentence
+                    }
+                )
+                if r.status_code == 200:
+                    response = r.json()
+                    print("disflu results:", response)
+                    return response
+                else:
+                    return {}
+        return '''
+        <!doctype html>
+        <title>Upload new File</title>
+        <h1>Upload new File</h1>
+        <form method=post enctype=multipart/form-data>
+        <input type=file name=file>
+        <input type=submit value=Upload>
+        </form>
+        '''
+
 
     @app.route('/hello')
     def hello_world():

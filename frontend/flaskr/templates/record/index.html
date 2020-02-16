@@ -361,7 +361,28 @@
   					var wav = new synth.WAV(1, context.sampleRate, 16, true, data);
   					var blob = wav.toBlob();
 
-  					// TODO
+            // TODO
+            var xhr=new XMLHttpRequest();
+            xhr.onload=function(e) {
+                if(this.readyState === 4) {
+                    console.log("Server returned: ",e.target.responseText);
+                }
+            };
+            var fd = new FormData();
+            fd.append("wav_file", blob, "filename.wav");
+            fd.append("target_sentence", secondResponse.innerText.slice(5));
+            xhr.open("POST","/process_audio",true);
+            xhr.send(fd);
+            /*
+            var data = new FormData()
+            data.append('wav_file', blob);
+            data.append('target_sentence', secondResponse.innerText.slice(5))
+
+            fetch('/process_audio', {
+              method: 'POST',
+              body: data
+            });
+            */
   					// let request = new XMLHttpRequest();
   					// request.open("POST", 'some_url/', true);
   					// request.send(data)

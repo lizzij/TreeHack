@@ -27,7 +27,9 @@ def lcs(a, b):
                     matched_b_index = k
                     break
             if matched_b_index is None:
-                print("wtf")
+                print("wtf", a, b)
+                matched_b_index = j
+                
                 # pprint(lengths)
                 # print(i, j)
             unmatched_a = a[last_match_a + 1:i-1]

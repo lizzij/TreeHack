@@ -5,16 +5,41 @@ import threading
 from fuzzywuzzy import fuzz
 from deep_disfluency.tagger.deep_tagger import DeepDisfluencyTagger
 from lcs import lcs
+from flask import Flask, flash, request, redirect, url_for
+from werkzeug.utils import secure_filename
+
+
+UPLOAD_FOLDER = 'uploads'
+ALLOWED_EXTENSIONS = {'wav'}
+
+
+
+app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
 
 disf = DeepDisfluencyTagger(
-    config_file="/home/chase/TreeHacks/configs/experiment_configs.csv",
+    config_file="C://Users//alexb//Documents//Treehack//frontend//configs//experiment_configs.csv",
     config_number=21,
-    saved_model_dir="/home/chase/TreeHacks/configs/epoch_40"
+    saved_model_dir="C://Users//alexb//Documents//Treehack//frontend//configs//epoch_40"
 )
 
 hesitation_tag = '%HESITATION'
 
-def compute_stats(target_sentence, transcript):
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+COMMON_FILE_NAME = "speech.wav"
+
+"""
+API endpoints to access NLP processing methods for news articles.
+"""
+
+
+def compute_stats(target_sentence, results):
     transcript = str(results['results'][0]['alternatives'][0]['transcript'])
     print("Target: " + target_sentence)
     print("Transcript: " + transcript)
@@ -100,11 +125,31 @@ def compute_stats(target_sentence, transcript):
     disf.reset()
 
     return result
-    
 
 
+@app.route('/compute_stats_from_audio', methods=['POST'])
+def compute_stats_from_audio():
+    # check if the post request has the file part
+    print("form", request.form)
+    target_sentence = request.form.get('target_sentence')
+    if target_sentence is None:
+        print("No target sentence!")
+        flash('No target sentence')
+        return {}
+    filename = secure_filename(COMMON_FILE_NAME)
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    # target_sentence = 'my grandfather you asked to know all about my grandfather he is nearly ninety three years old'
+    # target_sentence = 'the missile knows where it is'  
+    # target_sentence = 'the things they asked about were whether the judge should be the one that does the sentencing'
+    results = json.loads(os.popen('python transcribe.py ' + filepath).read())
+    stats = compute_stats(target_sentence, results)
+    print(json.dumps(stats, indent=2))
+    return stats
 
 if __name__ == "__main__":
+    
+    app.run(port=5050)
+
     filename = '13842.wav'
     target_sentence = 'my grandfather you asked to know all about my grandfather he is nearly ninety three years old'
     # target_sentence = 'the missile knows where it is'  
