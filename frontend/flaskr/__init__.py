@@ -1,7 +1,17 @@
 import os
 
-from flask import Flask
+from flask import Flask, request
+import houndify
 
+clientId = "6gG_SPtR_YNCOaTvI0IK5w=="
+clientKey = "3lHbv1T8X5UDUa4tGhogToKa9iBIAMLdGK02zUq-ZwsBZ6BdaAElh42Z-nVnDoKfiu_3zCYxqrL4Ux2Iqs7X9A=="
+userId = "test_user"
+requestInfo = {
+  "Latitude": 37.388309,
+  "Longitude": -121.973968
+}
+
+client = houndify.TextHoundClient(clientId, clientKey, userId, requestInfo)
 
 def create_app(test_config=None):
     """Create and configure an instance of the Flask application."""
@@ -26,10 +36,17 @@ def create_app(test_config=None):
     except OSError:
         pass
 
-    @app.route("/hello")
-    def hello():
-        return "Hello, World!"
+    @app.route("/textSearchProxy")
+    def text_search_proxy():
+        query = ' '.join(request.args.get('query').split('%20'))
+        print("input query:", query)
+        response = client.query(query)
+        print(response)
+        return response
 
+    @app.route('/')
+    def hello_world():
+        return 'Hello, World!'
     # register the database commands
     from flaskr import db
 
