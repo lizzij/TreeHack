@@ -13,7 +13,7 @@
 
 {% block content %}
 	<div class="speech-bubble-left"><p>Hello!</p></div>
-	<div class="speech-bubble-right"><p>Hello!</p></div>
+	<div class="speech-bubble-right" id="firstResponse" style="visibility:hidden;"><p></p></div>
 
   <div class="ui center aligned basic segment container">
 
@@ -249,7 +249,11 @@
 				// render hello
 				// window.location.href='{{ url_for('score.display_score') }}';
 				console.log(action);
-
+				var firstResponse = document.getElementById("firstResponse");
+				firstResponse.style.visibility='visible'
+				var transcript = response.Disambiguation.ChoiceData[0].FormattedTranscription;
+				console.log(transcript)
+				firstResponse.innerText = transcript;
 
       } else if (action == "start_session") {
 
