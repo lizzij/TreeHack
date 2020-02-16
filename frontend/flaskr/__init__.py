@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask, request
+from flask import Flask, request, send_from_directory
 import houndify
 
 clientId = "6gG_SPtR_YNCOaTvI0IK5w=="
@@ -47,6 +47,89 @@ def create_app(test_config=None):
     @app.route('/')
     def hello_world():
         return 'Hello, World!'
+    
+    # for face-api.js
+    @app.route('/age_gender_model-weights_manifest.json')
+    def serve_model1():
+        return send_from_directory('static/weights', 'age_gender_model-weights_manifest.json')
+
+    @app.route('/age_gender_model-shard1')
+    def serve_shard1():
+        return send_from_directory('static/weights', 'age_gender_model-shard1')
+
+    @app.route('/face_expression_model-weights_manifest.json')
+    def serve_model2():
+        return send_from_directory('static/weights', 'face_expression_model-weights_manifest.json')
+
+    @app.route('/face_expression_model-shard1')
+    def serve_shard2():
+        return send_from_directory('static/weights', 'face_expression_model-shard1')
+
+    @app.route('/face_landmark_68_model-weights_manifest.json')
+    def serve_model3():
+        return send_from_directory('static/weights', 'face_landmark_68_model-weights_manifest.json')
+
+    @app.route('/face_landmark_68_model-shard1')
+    def serve_shard3():
+        return send_from_directory('static/weights', 'face_landmark_68_model-shard1')
+
+    @app.route('/face_landmark_68_tiny_model-weights_manifest.json')
+    def serve_model4():
+        return send_from_directory('static/weights', 'face_landmark_68_tiny_model-weights_manifest.json')
+
+    @app.route('/face_landmark_68_tiny_model-shard1')
+    def serve_shard4():
+        return send_from_directory('static/weights', 'face_landmark_68_tiny_model-shard1')
+
+    @app.route('/face_recognition_model-weights_manifest.json')
+    def serve_model5():
+        return send_from_directory('static/weights', 'face_landmark_68_tiny_model-weights_manifest.json')
+
+    @app.route('/face_recognition_model-shard1')
+    def serve_shard5():
+        return send_from_directory('static/weights', 'face_recognition_model-shard1')
+
+    @app.route('/face_recognition_model-shard2')
+    def serve_shard5_2():
+        return send_from_directory('static/weights', 'face_recognition_model-shard2')
+
+    @app.route('/mtcnn_model-weights_manifest.json')
+    def serve_model6():
+        return send_from_directory('static/weights', 'mtcnn_model-weights_manifest.json')
+
+    @app.route('/mtcnn_model-shard1')
+    def serve_shard6():
+        return send_from_directory('static/weights', 'mtcnn_model-shard1')
+
+    @app.route('/ssd_mobilenetv1_model-weights_manifest.json')
+    def serve_model7():
+        return send_from_directory('static/weights', 'ssd_mobilenetv1_model-weights_manifest.json')
+
+    @app.route('/ssd_mobilenetv1_model-shard1')
+    def serve_shard7():
+        return send_from_directory('static/weights', 'ssd_mobilenetv1_model-shard1')
+
+    @app.route('/ssd_mobilenetv1_model-shard2')
+    def serve_shard7_2():
+        return send_from_directory('static/weights', 'ssd_mobilenetv1_model-shard2')
+
+    @app.route('/tiny_face_detector_model-weights_manifest.json')
+    def serve_model8():
+        return send_from_directory('static/weights', 'tiny_face_detector_model-weights_manifest.json')
+
+    @app.route('/tiny_face_detector_model-shard1')
+    def serve_shard8():
+        return send_from_directory('static/weights', 'tiny_face_detector_model-shard1')
+
+    @app.route('/practice/menu_icon.png')
+    def serve_menu_icon():
+        return send_from_directory('static', 'menu_icon.png')
+
+    @app.route('/practice/github_link_icon.png')
+    def serve_link_icon():
+        return send_from_directory('static', 'github_link_icon.png')
+
+
     # register the database commands
     from flaskr import db
 
