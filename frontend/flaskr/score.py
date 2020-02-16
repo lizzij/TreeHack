@@ -24,28 +24,28 @@ def display_score(word_analysis):
             "true_words": ["I"],
             "spoken_words": ["I"],
             "type": None,
-            "conf_score": 50,
+            "conf": 50,
         },
         {
             "is_match": False,
             "true_words": ["love"],
             "spoken_words": ["dove"],
             "type": "dyspraxia",
-            "conf_score": 50,
+            "conf": 50,
         },
         {
             "is_match": False,
             "true_words": ["cheese"],
             "spoken_words": ["glove", "grove", "shove"],
             "type": "stutter",
-            "conf_score": 50,
+            "conf": 50,
         },
         {
             "is_match": True,
             "true_words": ["please"],
             "spoken_words": ["please"],
             "type": None,
-            "conf_score": 75,
+            "conf": 75,
         }
     ]
     if word_analysis is None or len(word_analysis) == 0:
@@ -53,7 +53,8 @@ def display_score(word_analysis):
     else:
         word_analysis = json.loads(urllib.parse.unquote(word_analysis))
         if len(word_analysis) == 0 or 'words_analysis' not in word_analysis:
-            return render_template("record/index.html")
+            word_analysis = default_word_analysis
+            #return render_template("record/index.html")
         else:
             word_analysis = word_analysis['words_analysis']
 
@@ -68,6 +69,7 @@ def display_score(word_analysis):
             "spoken_color": "#FFF",
             "true_issue": "",
             "spoken_issue": "",
+            "conf": -1,
         }
         colors = {
             "omission": "#E2E2E2",
@@ -77,6 +79,8 @@ def display_score(word_analysis):
             "filler": "##FFEFE0",
             "dysfluency": "#0072a3"
         }
+
+        col['conf'] = data['conf']
 
         if isinstance(data["true_words"], str):
             col["true_word"] = data["true_words"]

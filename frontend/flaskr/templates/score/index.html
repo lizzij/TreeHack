@@ -4,14 +4,14 @@
 <h1>{% block title %}{% endblock %}</h1>
 <script src="https://unpkg.com/houndify@3.0.3/dist/houndify.js"></script>
 <script src="https://unpkg.com/jquery@3.3.1/dist/jquery.js"></script>
-<!-- <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script> -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
 <!-- This is the houndify css-->
 <link
   rel="stylesheet"
   href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.4/semantic.min.css"
 />
 <script src="{{ url_for('static', filename='js_bootstrap/bootstrap.js') }}"></script>
-<!-- <link rel="stylesheet" href="styles.css"> -->
+<link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css_bootstrap/bootstrap.css') }}">
 
 {% endblock %}
@@ -74,7 +74,12 @@
   </div>
   {% endfor %}
   </div>
-  <!-- <canvas id="myChart" width="400" height="400"></canvas> -->
+  <div id="chartDiv"> 
+    <canvas id="myChart" width="400" height="400" style="border:1px solid; height: 300px;">
+  </div>
+  <div id="chartDivConf"> 
+    <canvas id="myChartConf" width="400" height="400" style="border:1px solid; height: 300px;">
+  </div>
   <div id="conversationContainer">
 
     <div id="choicesContainer">
@@ -131,35 +136,91 @@
       </div>
     </form>
   </div>
-  <!-- <script>
+  <script>
+    const word_analysis_data = JSON.parse('{{ word_analysis|tojson }}');
+    const chart_data = [0, 0, 0, 0];
+    console.log(word_analysis_data);
+    const conf_data = [];
+    const spoken_words = [];
+    for (let idx = 0; idx < word_analysis_data.length; idx++) {
+      if (word_analysis_data[idx]['spoken_word'].length > 0) {
+        let split_words = word_analysis_data[idx]['spoken_word'].split(' ')
+        for (let j = 0; j < split_words.length; j++) {
+          if (split_words[j].length > 0) {
+          conf_data.push(word_analysis_data[idx]['conf'])
+          spoken_words.push(split_words[j])
+
+          }
+        }
+      }
+      
+      if (word_analysis_data[idx]['spoken_issue'] === '') {
+        chart_data[0] = chart_data[0] + 1;
+      } else if (word_analysis_data[idx]['spoken_issue'] === 'omission') {
+        chart_data[1] = chart_data[1] + 1;
+      } else if (word_analysis_data[idx]['spoken_issue'] === 'dyspraxia') {
+        chart_data[2] = chart_data[2] + 1;
+      } else if (word_analysis_data[idx]['spoken_issue'] === 'stutter') {
+        chart_data[3] = chart_data[3] + 1;
+      }
+
+      if (word_analysis_data[idx]['true_issue'] === '') {
+        chart_data[0] = chart_data[0] + 1;
+      } else if (word_analysis_data[idx]['true_issue'] === 'omission') {
+        chart_data[1] = chart_data[1] + 1;
+      } else if (word_analysis_data[idx]['true_issue'] === 'dyspraxia') {
+        chart_data[2] = chart_data[2] + 1;
+      } else if (word_analysis_data[idx]['true_issue'] === 'stutter') {
+        chart_data[3] = chart_data[3] + 1;
+      }
+    }
+    console.log(spoken_words);
+    console.log(conf_data);
+    var ctxConf = document.getElementById('myChartConf').getContext('2d');
+    var myLineChart = new Chart(ctxConf, {
+        type: 'line',
+        data: {
+        labels: spoken_words,
+        datasets: [{
+            label: 'My First dataset',
+            backgroundColor: 'rgb(255, 99, 132)',
+            borderColor: 'rgb(255, 99, 132)',
+            data: conf_data
+        }]
+    },
+        options: {
+          maintainAspectRatio: false
+        }
+    });
+
+
     var ctx = document.getElementById('myChart').getContext('2d');
+    document.getElementById('myChart').width = 400;
+    console.log(document.getElementById('myChart').width);
     var myChart = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+            labels: ['Correct', 'Omission', 'Dyspraxia', 'Stutter'],
             datasets: [{
-                label: '# of Votes',
-                data: [12, 19, 3, 5, 2, 3],
+                label: '# of Occurrences',
+                data: chart_data,
                 backgroundColor: [
-                    'rgba(255, 99, 132, 0.2)',
+                    'rgba(75, 192, 192, 0.2)',
                     'rgba(54, 162, 235, 0.2)',
                     'rgba(255, 206, 86, 0.2)',
-                    'rgba(75, 192, 192, 0.2)',
-                    'rgba(153, 102, 255, 0.2)',
-                    'rgba(255, 159, 64, 0.2)'
+                    'rgba(255, 99, 132, 0.2)',
                 ],
                 borderColor: [
-                    'rgba(255, 99, 132, 1)',
+                    'rgba(75, 192, 192, 1)',
                     'rgba(54, 162, 235, 1)',
                     'rgba(255, 206, 86, 1)',
-                    'rgba(75, 192, 192, 1)',
-                    'rgba(153, 102, 255, 1)',
-                    'rgba(255, 159, 64, 1)'
+                    'rgba(255, 99, 132, 1)',
                 ],
                 borderWidth: 1
             }]
         },
         options: {
+            maintainAspectRatio: false,
             scales: {
                 yAxes: [{
                     ticks: {
@@ -170,7 +231,6 @@
         }
     });
   </script>
-   -->
   <script>
     function textToSpeech(phrase) {
       window.speechSynthesis.cancel();
