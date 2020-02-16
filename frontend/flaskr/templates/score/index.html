@@ -13,9 +13,17 @@
 {% block content %}
 
   <div id="conversationContainer">
-    <input type="button" id="pracBut" value="Practice" />
-    <input type="button" id="dyspraxiaBut" value="Tell me about dyspraxia" />
-    <input type="button" id="dysfluencyBut" value="Tell me about disfluency" />
+
+    <div class="speech-bubble-left" ><p>Choose one:</p></div>
+
+    <div id="choicesContainer">
+      <input class="choices" type="button" id="pracBut" value="Practice" />
+      <input class="choices" type="button" id="dyspraxiaBut" value="Tell me about dyspraxia" />
+      <input class="choices" type="button" id="dysfluencyBut" value="Tell me about disfluency" />
+    </div>
+
+    <div class="speech-bubble-right" id="firstResponse" style="visibility:hidden;"><p></p></div>
+
     <p id="definitionText"></p>
   </div>
 
