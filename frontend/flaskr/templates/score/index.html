@@ -87,19 +87,22 @@
 
       // find voice by language locale "en-US"
       // if not then select the first voice
+      /* We want uk female!
       for(var i=0; i<available_voices.length; i++) {
         if(available_voices[i].lang === 'en-US') {
           english_voice = available_voices[i];
           break;
         }
       }
+      */
+     english_voice = available_voices[4];
       if(english_voice === '')
         english_voice = available_voices[0];
 
       // new SpeechSynthesisUtterance object
       var utter = new SpeechSynthesisUtterance();
       utter.rate = 1;
-      utter.pitch = 0.5;
+      utter.pitch = 1;
       utter.text = phrase;
       utter.voice = english_voice;
 
@@ -124,7 +127,7 @@
 		dyspraxiaBut.addEventListener("click", ToDyspraxia);
 		function ToDyspraxia() {
       console.log("Dyspraxia");
-      document.getElementById("query").value = "Tell%20me%20about%20dyspraxia";
+      document.getElementById("query").value = "Tell me about dyspraxia";
       initTextRequest();
       // Call the wikipedia speech to text
 		}
@@ -347,7 +350,7 @@
         // show and say the spoken response
         let spokenResponse = response.AllResults[0].SpokenResponse;
         let writtenResponse = response.AllResults[0].WrittenResponseLong;
-        definitionText.innerText = writtenResponse.replace(/%20/g, ' ');
+        definitionText.innerText = writtenResponse;
         textToSpeech(spokenResponse);
       }
         

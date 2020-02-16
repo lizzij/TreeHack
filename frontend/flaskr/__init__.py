@@ -44,7 +44,7 @@ def create_app(test_config=None):
         print(response)
         return response
 
-    @app.route('/')
+    @app.route('/hello')
     def hello_world():
         return 'Hello, World!'
     
