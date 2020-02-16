@@ -16,6 +16,7 @@
     <div class="speech-bubble-left"><p>Hello!</p></div>
     <div class="speech-bubble-right" id="firstResponse" style="visibility:hidden;"><p></p></div>
     <div class="speech-bubble-left" id="secondResponse" style="visibility:hidden;"><p></p></div>
+    <input type="button" id="mixBut" value="Start" style="visibility:hidden;" />
   </div>
 	<div id="voiceInputContainer">
 		<div class="ui center aligned basic segment container" id="voiceInput">
@@ -63,7 +64,7 @@
 	    </div>
 	</div>
 
-
+  <script src="https://unpkg.com/synth-js/dst/synth.min.js"></script>
   <script>
     // Start of Houndify code
     //HTML ELEMENTS FOR DISPLAYING RESPONSE AND INFO JSON's
@@ -238,6 +239,74 @@
 			return arr[Math.floor(Math.random() * arr.length)];
 		}
 
+    function startSession() {
+  		var mixBut = document.getElementById("mixBut");
+
+      mixBut.style.visibility = "visible";
+  		mixBut.addEventListener("click", Start);
+
+  		function Start() {
+  			console.log("Started");
+  			mixBut.removeEventListener("click", Start);
+  			mixBut.addEventListener("click", Stop);
+  			mixBut.value = "Stop";
+  			navigator.mediaDevices.getUserMedia({
+  				audio: true,
+  				video: false
+  			}).then(handleSuccess);
+  		}
+
+  		function Stop() {
+  			console.log("Stopped");
+  			mixBut.removeEventListener("click", Stop);
+  			mixBut.addEventListener("click", ToEval);
+  			mixBut.value = "Evaluate";
+  			function ToEval() {
+  				console.log("Evaluate");
+  				window.location.href='{{ url_for('score.display_score') }}';
+  			}
+  		}
+
+  		var handleSuccess = function(stream) {
+  			var context = new AudioContext();
+  			var source = context.createMediaStreamSource(stream);
+  			var processor = context.createScriptProcessor(1024, 1, 1);
+  			var data = [];
+
+  			source.connect(processor);
+  			processor.connect(context.destination);
+
+  			processor.onaudioprocess = function(e) {
+  				data.push.apply(data, e.inputBuffer.getChannelData(0));
+  				// cut off after 5 seconds
+  				if (mixBut.value === "Evaluate") {
+  					context.close();
+  					var track = stream.getAudioTracks()[0];
+  					track.stop();
+  					// Convert this to WAV
+  					var wav = new synth.WAV(1, context.sampleRate, 16, true, data);
+  					var blob = wav.toBlob();
+
+  					// TODO
+  					// let request = new XMLHttpRequest();
+  					// request.open("POST", 'some_url/', true);
+  					// request.send(data)
+  					// do something with blob
+
+  					var src = URL.createObjectURL(blob);
+  					var audio = new Audio();
+  					audio.controls = true;
+  					document.body.appendChild(audio);
+  					// play back audio
+  					audio.addEventListener('canplaythrough', function() {
+  						audio.play();
+  					});
+  					audio.src = src;
+  				}
+  			};
+  		};
+    }
+
     //Fires after server responds with Response JSON
     //Info object contains useful information about the completed request
     //See https://houndify.com/reference/HoundServer
@@ -284,7 +353,8 @@
 				var actualText = chooseText();
 				secondResponse.innerText = 'Say: ' + actualText;
 
-        // TODO send the actualText and encoded wva, get back score 
+        // TODO send the actualText and encoded wva, get back score
+        startSession();
 
 			} else if (action == "start_exercises") {
 
