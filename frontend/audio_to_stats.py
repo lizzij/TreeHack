@@ -3,6 +3,9 @@ import json
 import string
 import threading
 from fuzzywuzzy import fuzz
+#filepath = "uploads/clean.wav"
+#results = json.loads(os.popen('C://Users//alexb//AppData//Local//Programs//Python//Python35//python.exe transcribe.py ' + filepath).read())
+#print(results)
 from deep_disfluency.tagger.deep_tagger import DeepDisfluencyTagger
 from lcs import lcs
 from flask import Flask, flash, request, redirect, url_for
@@ -136,12 +139,13 @@ def compute_stats_from_audio():
         print("No target sentence!")
         flash('No target sentence')
         return {}
-    filename = secure_filename(COMMON_FILE_NAME)
+    filename = secure_filename(request.form.get('filename'))
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    print(filepath)
     # target_sentence = 'my grandfather you asked to know all about my grandfather he is nearly ninety three years old'
     # target_sentence = 'the missile knows where it is'  
     # target_sentence = 'the things they asked about were whether the judge should be the one that does the sentencing'
-    results = json.loads(os.popen('python transcribe.py ' + filepath).read())
+    results = json.loads(os.popen('C://Users//alexb//AppData//Local//Programs//Python//Python35//python.exe transcribe.py ' + filepath).read())
     stats = compute_stats(target_sentence, results)
     print(json.dumps(stats, indent=2))
     return stats

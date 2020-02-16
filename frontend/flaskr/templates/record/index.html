@@ -19,54 +19,56 @@
     
     <div id="choicesContainer">
       <input class="choices" type="button" id="mixBut" value="Start" style="visibility:hidden;" />
+      <input class="choices" type="button" data-playing="false" role="switch" aria-checked="false" id="patient1But" value="Play from real patient" style="visibility:hidden;" />
+      <!-- <button data-playing="false" role="switch" aria-checked="false" id="play_button"> -->
+        <!-- <span>Play/Pause</span>
+      </button> -->
     </div>
   </div>
-  
+  <audio src="clean.wav" type="audio/wav"></audio>
   <div class="loader" style="display:none" id="processing_loader"></div>
 	<div id="voiceInputContainer">
 		<div class="ui center aligned basic segment container" id="voiceInput">
+      <form id="form" class="ui form" action="javascript:void(0);">
+        <div class="ui action big labeled fluid input field">
+          <div class="ui icon basic label button" onclick="onMicrophoneClick()">
+            <i id="voiceIcon" class="unmute big icon"></i>
+          </div>
+          <input
+            id="query"
+            type="text"
+            placeholder="Say something..."
+          />
+          <button
+            id="textSearchButton"
+            class="ui icon button"
+            onclick="initTextRequest()"
+          >
+            <i class="search big icon"></i>
+          </button>
+        </div>
 
-	      <form id="form" class="ui form" action="javascript:void(0);">
+        <!-- <div class="ui field">
+          <label class="ui label" for="file"
+            >Or upload a recorded voice query from a file</label
+          >
+          <input type="file" id="file" name="file" onchange="onFileUpload()" />
+        </div> -->
 
-	        <div class="ui action big labeled fluid input field">
-	          <div class="ui icon basic label button" onclick="onMicrophoneClick()">
-	            <i id="voiceIcon" class="unmute big icon"></i>
-	          </div>
-	          <input
-	            id="query"
-	            type="text"
-	            placeholder="Say something..."
-	          />
-	          <button
-	            id="textSearchButton"
-	            class="ui icon button"
-	            onclick="initTextRequest()"
-	          >
-	            <i class="search big icon"></i>
-	          </button>
-	        </div>
+        <div id="status" class="ui info message">
+          Click on microphone icon or type in the text query.
+        </div>
 
-	        <!-- <div class="ui field">
-	          <label class="ui label" for="file"
-	            >Or upload a recorded voice query from a file</label
-	          >
-	          <input type="file" id="file" name="file" onchange="onFileUpload()" />
-	        </div> -->
-
-	        <div id="status" class="ui info message">
-	          Click on microphone icon or type in the text query.
-	        </div>
-
-	        <div class="ui field" hidden>
-	          <label>Response object</label>
-	          <textarea id="responseJSON"></textarea>
-	        </div>
-	        <div class="ui field" hidden>
-	          <label>Search info object</label>
-	          <textarea id="infoJSON"></textarea>
-	        </div>
-	      </form>
-	    </div>
+        <div class="ui field" hidden>
+          <label>Response object</label>
+          <textarea id="responseJSON"></textarea>
+        </div>
+        <div class="ui field" hidden>
+          <label>Search info object</label>
+          <textarea id="infoJSON"></textarea>
+        </div>
+      </form>
+    </div>
 	</div>
 
   <script src="https://unpkg.com/synth-js/dst/synth.min.js"></script>
@@ -314,18 +316,90 @@
 
 		function chooseText() {
 			var arr = [
-        'my grandfather you asked to know all about how he is nearly ninety three years old',
-        'the things they asked about were whether the judge should be the one that does the sentencing',
-        'the rain in spain falls mainly on the plain'
+        'my grandfather you asked to know all about how my grandfather is nearly ninety three years old',
+        //'the things they asked about were whether the judge should be the one that does the sentencing',
+        //'the rain in spain falls mainly on the plain'
       ];
 			return arr[Math.floor(Math.random() * arr.length)];
 		}
 
     function startSession() {
   		var mixBut = document.getElementById("mixBut");
+  		var patient1But = document.getElementById("patient1But");
 
       mixBut.style.visibility = "visible";
-  		mixBut.addEventListener("click", Start);
+      patient1But.style.visibility = "visible";
+      mixBut.addEventListener("click", Start);
+      
+      // get the audio element
+      const audioElement = document.querySelector('audio');
+      const audioContext = new AudioContext();
+      // pass it into the audio context
+      const track = audioContext.createMediaElementSource(audioElement);
+      track.connect(audioContext.destination);
+
+      // select our play button
+      const playButton = document.getElementById('patient1But');
+
+      playButton.addEventListener('click', function() {
+
+          // check if context is in suspended state (autoplay policy)
+          if (audioContext.state === 'suspended') {
+              audioContext.resume();
+          }
+
+          // play or pause track depending on state
+          if (this.dataset.playing === 'false') {
+              audioElement.play();
+              this.dataset.playing = 'true';
+
+              var xhr=new XMLHttpRequest();
+              xhr.onload=function(e) {
+                  if(this.readyState === 4) {
+                      console.log("Server returned: ",e.target.responseText);
+                      response = JSON.stringify(JSON.parse(e.target.responseText));
+                      window.location.href='/score/' + response;
+                  }
+              };
+              var fd = new FormData();
+              fd.append("target_sentence", secondResponse.innerText.slice(5));
+              xhr.open("POST","/process_audio_patient",true);
+              
+              var processLoader = document.getElementById("processing_loader");
+              processLoader.style.display = "";
+              //mixBut.style.display = "none";
+              xhr.send(fd);
+
+          } else if (this.dataset.playing === 'true') {
+              audioElement.pause();
+              this.dataset.playing = 'false';
+          }
+
+      }, false);
+      audioElement.addEventListener('ended', () => {
+          playButton.dataset.playing = 'false';
+      }, false);
+
+      function patientStart() {
+  			console.log("Started");
+  			patient1But.removeEventListener("click", patientStart);
+  			patient1But.addEventListener("click", patientStop);
+        patient1But.value = "Stop";
+        // get the audio element
+
+        // pass it into the audio context
+        handlePatientSuccess(audioElement);
+      }
+  		function patientStop() {
+  			console.log("Stopped");
+  			patient1But.removeEventListener("click", patientStop);
+        // mixBut.addEventListener("click", ToEval);
+  			mixBut.value = "Evaluating";
+  			// function ToEval() {
+  			//  	console.log("Evaluate");
+  			//  	//window.location.href='/score';
+  			//  }
+  		}
 
   		function Start() {
   			console.log("Started");
@@ -349,6 +423,71 @@
   			//  }
   		}
 
+      var handlePatientSuccess = function(stream) {
+  			var context = new AudioContext();
+        var source = context.createMediaElementSource(stream);
+  			var processor = context.createScriptProcessor(1024, 1, 1);
+  			var data = [];
+
+  			source.connect(processor);
+  			processor.connect(context.destination);
+
+  			processor.onaudioprocess = function(e) {
+  				data.push.apply(data, e.inputBuffer.getChannelData(0));
+  				// cut off after 5 seconds
+  				if (mixBut.value == "Evaluating") {
+  					context.close();
+  					var track = stream.getAudioTracks()[0];
+  					track.stop();
+  					// Convert this to WAV
+  					var wav = new synth.WAV(1, context.sampleRate, 16, true, data);
+  					var blob = wav.toBlob();
+
+            // TODO
+            var xhr=new XMLHttpRequest();
+            xhr.onload=function(e) {
+                if(this.readyState === 4) {
+                    console.log("Server returned: ",e.target.responseText);
+                    response = JSON.stringify(JSON.parse(e.target.responseText));
+  			          	window.location.href='/score/' + response;
+                }
+            };
+            var fd = new FormData();
+            fd.append("wav_file", blob, "filename.wav");
+            fd.append("target_sentence", secondResponse.innerText.slice(5));
+            xhr.open("POST","/process_audio",true);
+            
+            var processLoader = document.getElementById("processing_loader");
+            processLoader.style.display = "";
+            mixBut.style.display = "none";
+            xhr.send(fd);
+            /*
+            var data = new FormData()
+            data.append('wav_file', blob);
+            data.append('target_sentence', secondResponse.innerText.slice(5))
+
+            fetch('/process_audio', {
+              method: 'POST',
+              body: data
+            });
+            */
+  					// let request = new XMLHttpRequest();
+  					// request.open("POST", 'some_url/', true);
+  					// request.send(data)
+  					// do something with blob
+
+  					var src = URL.createObjectURL(blob);
+  					var audio = new Audio();
+  					audio.controls = true;
+  					document.body.appendChild(audio);
+  					// play back audio
+  					audio.addEventListener('canplaythrough', function() {
+  						audio.play();
+  					});
+  					audio.src = src;
+  				}
+  			};
+      };
   		var handleSuccess = function(stream) {
   			var context = new AudioContext();
   			var source = context.createMediaStreamSource(stream);

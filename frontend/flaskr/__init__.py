@@ -61,6 +61,27 @@ def create_app(test_config=None):
         print(response)
         return response
 
+    @app.route('/process_audio_patient', methods=['POST'])
+    def process_audio_patient():
+        # check if the post request has the file part
+        print("form", request.form)
+        target_sentence = request.form.get('target_sentence')
+        filename = 'clean.wav'
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        r = requests.post(
+            url='http://localhost:5050/compute_stats_from_audio',
+            data={
+                "filename": filename,
+                "target_sentence": target_sentence
+            }
+        )
+        if r.status_code == 200:
+            response = r.json()
+            print("disflu results:", response)
+            return response
+        else:
+            return {}
+
     @app.route('/process_audio', methods=['GET', 'POST'])
     def process_audio():
         if request.method == 'POST':
@@ -112,6 +133,10 @@ def create_app(test_config=None):
     @app.route('/hello')
     def hello_world():
         return 'Hello, World!'
+
+    @app.route('/clean.wav')
+    def serve_model0():
+        return send_from_directory('static/audio', 'clean.wav')
 
     # for face-api.js
     @app.route('/age_gender_model-weights_manifest.json')

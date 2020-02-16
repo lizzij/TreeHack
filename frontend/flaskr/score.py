@@ -74,7 +74,8 @@ def display_score(word_analysis):
             "stutter": "#FFC8D9",
             "dyspraxia": "#D6BBB6",
             "correct": "#B3DBCE",
-            "filler": "##FFEFE0"
+            "filler": "##FFEFE0",
+            "dysfluency": "#0072a3"
         }
 
         if isinstance(data["true_words"], str):
@@ -111,8 +112,8 @@ def display_score(word_analysis):
         else:
             col["true_color"] = colors["omission"]
             col["true_issue"] = "omission"
-            col["spoken_color"] = colors["stutter"]
-            col["spoken_issue"] = "stutter"
+            col["spoken_color"] = colors["dysfluency"]
+            col["spoken_issue"] = "dysfluency"
         words_cols.append(col)
 
     return render_template("score/index.html", word_analysis=words_cols)
