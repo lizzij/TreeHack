@@ -1,21 +1,52 @@
 {% extends 'base.html' %}
 
 {% block header %}
-<h1>{% block title %}Score{% endblock %}</h1>
+<h1>{% block title %}{% endblock %}</h1>
 <script src="https://unpkg.com/houndify@3.0.3/dist/houndify.js"></script>
+<script src="https://unpkg.com/jquery@3.3.1/dist/jquery.js"></script>
 <!-- This is the houndify css-->
 <link
   rel="stylesheet"
   href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.4/semantic.min.css"
 />
+<script src="{{ url_for('static', filename='js_bootstrap/bootstrap.js') }}"></script>
+<!-- <link rel="stylesheet" href="styles.css"> -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css_bootstrap/bootstrap.css') }}">
+
 {% endblock %}
 
 {% block content %}
-  {% for label, score in scores.items() %}
-    <h1>{{ label }}: {{ score }}</h1>
+  <div class="row" style="margin: 20px">
+  {% for col in word_analysis %}
+    <div class="col-sm-2"
+    style="padding: 10px; margin-left: 10px; margin-right: 10px;">
+      <div class="row zoom"
+      style="background-color:{{ col["true_color"] }}; color:#FFF; margin-top: 10px; margin-bottom: 10px; border-radius:5px;">
+        <div class="tooltip tooltiptop"
+        style="display:flex; justify-content:center; font-size: 20px; padding:10px;"
+        >
+          {{ col["true_word"] }}
+          {% if col["true_issue"] != "" %}
+            <span class="tooltiptext">{{col["true_issue"]}}</span>
+          {% endif %}
+        </div>  
+      </div>
+      <div class="row zoom"
+      style="background-color:{{ col["pred_color"] }}; color:#FFF; margin-top: 10px; margin-bottom: 10px; border-radius:5px;">
+        <div class="tooltipbottom"
+        style="display:flex; justify-content:center; font-size: 20px; padding:10px"
+        >
+          {{ col["pred_word"] }}
+          {% if col["pred_issue"] != ""%}
+          <span class="tooltiptextbottom">{{col["pred_issue"]}}</span>
+          {% endif %}
+        </div>  
+      </div>
+    </div>
   {% endfor %}
+  </div>
   
-	<input type="button" id="mixBut" value="Start" />
+  <input type="button" id="mixBut" value="Start" />
 	
   <div class="ui center aligned basic segment container">
     <h2 class="ui block basic header">Houndify JavaScript SDK Demo</h2>
@@ -342,7 +373,7 @@
       statusElt.innerText = "Received response.";
       responseElt.parentNode.hidden = false;
       responseElt.value = JSON.stringify(response, undefined, 2);
-    
+
       let commandType = response.AllResults[0].CommandKind;
       console.log(commandType);
       if (commandType == "InformationCommand" ||
@@ -353,7 +384,7 @@
         definitionText.innerText = writtenResponse;
         textToSpeech(spokenResponse);
       }
-        
+
 			// window.location.href='{{ url_for('score.display_score') }}';
 
       //infoElt.parentNode.hidden = false;
