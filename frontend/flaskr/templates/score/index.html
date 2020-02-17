@@ -177,19 +177,28 @@
     console.log(spoken_words);
     console.log(conf_data);
     var ctxConf = document.getElementById('myChartConf').getContext('2d');
+    spoken_words.push(['.']);
+    conf_data.push(0)
     var myLineChart = new Chart(ctxConf, {
         type: 'line',
         data: {
-        labels: spoken_words,
-        datasets: [{
-            label: 'My First dataset',
-            backgroundColor: 'rgb(255, 99, 132)',
-            borderColor: 'rgb(255, 99, 132)',
-            data: conf_data
-        }]
-    },
+          labels: spoken_words,
+          datasets: [{
+              label: 'My First dataset',
+              backgroundColor: 'rgb(255, 99, 132)',
+              borderColor: 'rgb(255, 99, 132)',
+              data: conf_data
+          }]
+        },
         options: {
-          maintainAspectRatio: false
+          maintainAspectRatio: false,
+          scales: {
+              yAxes: [{
+                  ticks: {
+                      beginAtZero: true
+                  }
+              }]
+          }
         }
     });
 

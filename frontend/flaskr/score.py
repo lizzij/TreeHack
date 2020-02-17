@@ -80,7 +80,7 @@ def display_score(word_analysis):
             "dysfluency": "#0072a3"
         }
 
-        col['conf'] = data['conf']
+        col['conf'] = (data.get('conf') or 0)
 
         if isinstance(data["true_words"], str):
             col["true_word"] = data["true_words"]

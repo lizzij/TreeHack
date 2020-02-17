@@ -162,10 +162,10 @@
         const currInnerWidth = length(mouthPoints[12], mouthPoints[16]);
         const currInnerHeight = length(mouthPoints[14], mouthPoints[18]);
         const lipHeight = length(mouthPoints[3], mouthPoints[14]);
-        if (currOuterWidth / restingMeasures['dist_0_6'] > 0.85 &&
-            currOuterWidth / restingMeasures['dist_0_6'] < 1.1 &&
-            currInnerHeight / currInnerWidth > 0.3 &&
-            currInnerHeight / currInnerWidth < 0.6) { // success
+        if (currOuterWidth / restingMeasures['dist_0_6'] > 0.8 &&
+            currOuterWidth / restingMeasures['dist_0_6'] < 1.2 &&
+            currInnerHeight / currInnerWidth > 0.25 &&
+            currInnerHeight / currInnerWidth < 0.65) { // success
                 console.log(currInnerHeight / currInnerWidth);
                 return null;
         } else {
@@ -245,10 +245,10 @@
         const currInnerWidth = length(mouthPoints[12], mouthPoints[16]);
         const currInnerHeight = length(mouthPoints[14], mouthPoints[18]);
         const lipHeight = length(mouthPoints[3], mouthPoints[14]);
-        if (currOuterWidth / restingMeasures['dist_0_6'] > 0.9 &&
-            currOuterWidth / restingMeasures['dist_0_6'] < 1.15 &&
-            currInnerHeight / currInnerWidth > 0.2 &&
-            currInnerHeight / currInnerWidth < 0.35) { // success
+        if (currOuterWidth / restingMeasures['dist_0_6'] > 0.85 &&
+            currOuterWidth / restingMeasures['dist_0_6'] < 1.2 &&
+            currInnerHeight / currInnerWidth > 0.17 &&
+            currInnerHeight / currInnerWidth < 0.38) { // success
             console.log(currInnerHeight / currInnerWidth);
             return null;
         } else {
@@ -692,7 +692,7 @@
             
                 if (adjustedMouthPoints == null) { // successful
                     if (isSuccessful) {
-                        if (Date.now() - successStartTime > 1500) {
+                        if (Date.now() - successStartTime > 1000) {
                             console.log('SUCCESS!!!!')
                             isSuccessful = false;
                             document.getElementById(currMissionDiv).style.display = 'none';
